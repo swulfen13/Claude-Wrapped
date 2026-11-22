@@ -1,0 +1,36 @@
+{
+  "name": "ccwrapped",
+  "version": "0.1.0",
+  "description": "Your year with Claude Code, wrapped. Tokens, models, projects, active hours, best month and a shareable card, computed 100% locally from your Claude Code logs.",
+  "bin": {
+    "ccwrapped": "bin/claude-wrapped.js",
+    "claude-wrapped": "bin/claude-wrapped.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "demo": "node bin/claude-wrapped.js --demo"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "wrapped",
+    "year-in-review",
+    "anthropic",
+    "tokens",
+    "usage",
+    "stats",
+    "cli"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swulfen13/Claude-Wrapped.git"
+  }
+}
