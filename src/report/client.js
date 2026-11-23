@@ -66,7 +66,7 @@
       langsNote: 'By file extension of edits and writes.',
       colModel: 'Model', colTokens: 'Tokens', colShare: 'Share', colCost: 'Est. cost', colProject: 'Project',
       colSessions: 'Sessions', colPrompts: 'Prompts', colTool: 'Tool', colCalls: 'Calls', colLang: 'Language', colEdits: 'Edits',
-      footer: 'Made with claude-wrapped. Your data never left your computer. Not affiliated with Anthropic.',
+      footer: 'Made with ccwrapped. Your data never left your computer. Not affiliated with Anthropic.',
       emptyTitle: 'No Claude Code activity found',
       emptySub: 'Claude Wrapped reads the session logs Claude Code stores in ~/.claude/projects. Use Claude Code for a bit, pick another year with --year, or try the demo with --demo.',
       weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -142,7 +142,7 @@
       langsNote: 'Nach Dateiendung der Edits und Writes.',
       colModel: 'Modell', colTokens: 'Tokens', colShare: 'Anteil', colCost: 'Kosten (geschätzt)', colProject: 'Projekt',
       colSessions: 'Sessions', colPrompts: 'Prompts', colTool: 'Tool', colCalls: 'Aufrufe', colLang: 'Sprache', colEdits: 'Edits',
-      footer: 'Erstellt mit claude-wrapped. Deine Daten haben deinen Rechner nie verlassen. Kein offizielles Anthropic-Produkt.',
+      footer: 'Erstellt mit ccwrapped. Deine Daten haben deinen Rechner nie verlassen. Kein offizielles Anthropic-Produkt.',
       emptyTitle: 'Keine Claude-Code-Aktivität gefunden',
       emptySub: 'Claude Wrapped liest die Session-Logs, die Claude Code in ~/.claude/projects speichert. Nutz Claude Code ein bisschen, wähl mit --year ein anderes Jahr oder probier die Demo mit --demo.',
       weekdaysShort: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
@@ -172,7 +172,9 @@
   const dateLong = (s) => new Intl.DateTimeFormat(L, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(s + 'T12:00:00'));
   const dateTs = (ts) => new Intl.DateTimeFormat(L, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(ts));
   const hourLabel = (h) => new Intl.DateTimeFormat(L, { hour: 'numeric' }).format(new Date(2000, 0, 1, h));
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const esc = CCWCharts.esc;
+  const bars = CCWCharts.bars;
+  const table = CCWCharts.table;
   const repoName = (name, i) => (META.anonymize ? `project-${i + 1}` : name);
 
   const who = META.name ? T.possessive(META.name) : T.yours;
@@ -315,57 +317,11 @@
     <footer>${esc(T.footer)}<br><code>npx ccwrapped</code></footer>`;
 
   // ---------- charts ----------
-  function heatColor(level) {
-    return ['#e4e5f0', '#c7ccfb', '#8c98f6', '#5468f2', C.cobalt][level];
-  }
+  function heatColor(level) { return CCWCharts.HEAT[level]; }
   function heatmap() {
-    const map = new Map(D.days.map((d) => [d.date, d.tokens]));
-    const sorted = D.days.map((d) => d.tokens).filter((t) => t > 0).sort((a, b) => a - b);
-    const q = (p) => sorted[Math.floor(p * (sorted.length - 1))] || 0;
-    const th = [q(0.25), q(0.5), q(0.75)];
-    const level = (t) => (!t ? 0 : t <= th[0] ? 1 : t <= th[1] ? 2 : t <= th[2] ? 3 : 4);
-    const startYear = D.year != null ? D.year : new Date(D.range.first).getFullYear();
     const start = D.year != null ? new Date(D.year, 0, 1) : new Date(D.range.first);
     const end = D.year != null ? new Date(D.year, 11, 31) : new Date(D.range.last);
-    start.setDate(start.getDate() - ((start.getDay() + 6) % 7)); // back to Monday
-    const cell = 13, gap = 3, left = 30, top = 18;
-    let x = 0, out = '', lastMonth = -1;
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 7), x++) {
-      for (let r = 0; r < 7; r++) {
-        const day = new Date(d); day.setDate(d.getDate() + r);
-        if (day > end) break;
-        const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
-        const inRange = D.year == null || day.getFullYear() === startYear;
-        const t = map.get(key) || 0;
-        if (inRange) out += `<rect x="${left + x * (cell + gap)}" y="${top + r * (cell + gap)}" width="${cell}" height="${cell}" rx="3" fill="${heatColor(level(t))}"><title>${key}: ${compact(t)} tokens</title></rect>`;
-        if (r === 0 && day.getMonth() !== lastMonth && inRange && day.getDate() <= 7) {
-          lastMonth = day.getMonth();
-          out += `<text x="${left + x * (cell + gap)}" y="11">${esc(monthName(day.getMonth(), 'short'))}</text>`;
-        }
-      }
-    }
-    const rowLabels = [0, 2, 4].map((r) => `<text x="0" y="${top + r * (cell + gap) + 10}">${esc(T.weekdaysShort[r])}</text>`).join('');
-    const w = left + x * (cell + gap);
-    return `<svg class="chart heat" viewBox="0 0 ${w} ${top + 7 * (cell + gap)}" role="img" aria-label="${esc(T.heatmap)}">${rowLabels}${out}</svg>`;
-  }
-  function bars(values, labels, fmt, hi, W = 640) {
-    const H = 220, pad = 24, n = values.length, max = Math.max(...values, 1);
-    const bw = (W - pad) / n;
-    let out = '';
-    values.forEach((v, i) => {
-      const h = (v / max) * (H - 50);
-      const x = i * bw + 2;
-      out += `<rect x="${x}" y="${H - 22 - h}" width="${Math.max(bw - 5, 2)}" height="${h}" rx="3" fill="${i === hi ? C.cobalt : '#c7ccfb'}"><title>${esc(labels[i] || i)}: ${fmt(v)}</title></rect>`;
-      if (labels[i]) out += `<text x="${x + (bw - 5) / 2}" y="${H - 6}" text-anchor="middle">${esc(labels[i])}</text>`;
-      if (i === hi) out += `<text x="${x + (bw - 5) / 2}" y="${H - 28 - h}" text-anchor="middle" font-weight="600">${fmt(v)}</text>`;
-    });
-    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img">${out}</svg>`;
-  }
-  function table(head, rows, shares) {
-    if (!rows.length) return '<p class="note">–</p>';
-    return `<table><thead><tr>${head.map((h, i) => `<th class="${i ? 'n' : ''}">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows
-      .map((r, ri) => `<tr>${r.map((c, i) => (i === 0 ? `<td class="barcell"><span style="width:${Math.max(shares[ri] || 0, 0.02) * 100}%"></span>${c}</td>` : `<td class="n">${c}</td>`)).join('')}</tr>`)
-      .join('')}</tbody></table>`;
+    return CCWCharts.heatmap(D.days, start, end, { fmt: compact, month: (m) => monthName(m, 'short'), weekdays: T.weekdaysShort });
   }
 
   // ---------- count-up: the one motion moment ----------
@@ -396,48 +352,27 @@
     'npx ccwrapped',
   ].join('\n');
 
-  async function drawCard() {
-    const cv = document.getElementById('card');
-    const ctx = cv.getContext('2d');
-    try { await document.fonts.ready; } catch (e) { /* fonts optional */ }
-    const display = getComputedStyle(document.documentElement).getPropertyValue('--display');
-    const body = getComputedStyle(document.documentElement).getPropertyValue('--body');
-    const W = 1080, H = 1350;
-    ctx.fillStyle = C.cobalt; ctx.fillRect(0, 0, W, H);
-    // outlined year
-    ctx.save();
-    ctx.font = `800 620px ${display}`; ctx.strokeStyle = 'rgba(245,245,250,0.22)'; ctx.lineWidth = 3;
-    ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
-    ctx.strokeText(D.year == null ? '∞' : String(D.year).slice(2), W + 30, H + 70);
-    ctx.restore();
-
-    ctx.fillStyle = C.paper; ctx.textBaseline = 'top';
-    ctx.font = `500 38px ${body}`; ctx.fillText(T.titleLine(who, period), 72, 76);
-    ctx.font = `800 132px ${display}`; ctx.fillText('Claude Code', 72, 130); ctx.fillText(T.wrapped, 72, 250);
-
-    ctx.fillStyle = C.signal;
-    let size = 250; ctx.font = `800 ${size}px ${display}`;
-    while (ctx.measureText(compact(D.totals.tokens)).width > 940 && size > 120) { size -= 10; ctx.font = `800 ${size}px ${display}`; }
-    ctx.fillText(compact(D.totals.tokens), 66, 400 + (250 - size) * 0.8);
-    ctx.fillStyle = C.paper; ctx.font = `600 40px ${body}`; ctx.fillText(T.cardTokens, 74, 650);
-
+  function cardOptions() {
     const topRepo = D.projects[0] ? repoName(D.projects[0].name, 0) : '–';
-    const cells = [
-      [nf(D.activeHours), T.cardHours], [nf(D.activeDays), T.cardDays], [nf(D.longestStreak), T.cardStreak],
-      [D.favoriteModel || '–', T.cardModel], [topRepo, T.cardRepo],
-    ];
-    cells.forEach(([v, k], i) => {
-      const wide = i >= 3, cx = wide ? 72 + (i - 3) * 480 : 72 + i * 320, cy = 760 + (wide ? 190 : 0), maxW = wide ? 450 : 290;
-      ctx.fillStyle = i < 3 ? C.mint : C.blush; ctx.fillRect(cx, cy, 60, 8);
-      ctx.fillStyle = C.paper; ctx.font = `800 76px ${display}`;
-      let val = String(v); while (ctx.measureText(val).width > maxW && val.length > 3) val = val.slice(0, -2) + '…';
-      ctx.fillText(val, cx, cy + 26);
-      ctx.font = `500 28px ${body}`; ctx.globalAlpha = 0.85; ctx.fillText(k, cx, cy + 112); ctx.globalAlpha = 1;
-    });
-    ctx.fillStyle = C.signal; ctx.fillRect(0, H - 110, W, 110);
-    ctx.fillStyle = C.ink; ctx.font = `700 40px ${body}`; ctx.textBaseline = 'middle';
-    ctx.fillText('npx ccwrapped', 72, H - 55);
+    return {
+      theme: 'cobalt',
+      format: 'portrait',
+      subtitle: T.titleLine(who, period),
+      heading: ['Claude Code', T.wrapped],
+      hero: { value: compact(D.totals.tokens), label: T.cardTokens },
+      stats: [
+        { value: nf(D.activeHours), label: T.cardHours },
+        { value: nf(D.activeDays), label: T.cardDays },
+        { value: nf(D.longestStreak), label: T.cardStreak },
+        { value: hourLabel(D.topHour), label: T.cardPeak },
+        { value: D.favoriteModel || '–', label: T.cardModel },
+        { value: topRepo, label: T.cardRepo },
+      ],
+      stamp: D.year == null ? '∞' : String(D.year).slice(2),
+      footer: 'npx ccwrapped',
+    };
   }
+  const drawCard = () => CCWCard.draw(document.getElementById('card'), cardOptions());
   drawCard();
   document.getElementById('dl').addEventListener('click', () => {
     const a = document.createElement('a');

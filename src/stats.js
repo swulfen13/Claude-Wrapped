@@ -41,7 +41,8 @@ function persona(topHour) {
  */
 function computeStats(allEvents, opts = {}) {
   const year = opts.year === undefined ? new Date().getFullYear() : opts.year;
-  const events = year == null ? allEvents : allEvents.filter((e) => new Date(e.ts).getFullYear() === year);
+  let events = year == null ? allEvents : allEvents.filter((e) => new Date(e.ts).getFullYear() === year);
+  if (opts.since != null) events = events.filter((e) => e.ts >= opts.since);
 
   const totals = { input: 0, output: 0, cacheWrite: 0, cacheRead: 0, cost: 0, prompts: 0, responses: 0 };
   const byHour = Array(24).fill(0);

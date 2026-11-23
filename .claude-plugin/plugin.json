@@ -1,0 +1,10 @@
+{
+  "name": "ccwrapped",
+  "version": "0.2.0",
+  "description": "Your Claude Code usage, wrapped: year-in-review report, live localhost dashboard, desktop token widget and a friends leaderboard on your own Supabase.",
+  "author": { "name": "swulfen13" },
+  "homepage": "https://github.com/swulfen13/Claude-Wrapped",
+  "repository": "https://github.com/swulfen13/Claude-Wrapped",
+  "license": "Apache-2.0",
+  "keywords": ["usage", "stats", "wrapped", "leaderboard", "tokens"]
+}

@@ -1,14 +1,17 @@
 {
   "name": "ccwrapped",
-  "version": "0.1.0",
-  "description": "Your year with Claude Code, wrapped. Tokens, models, projects, active hours, best month and a shareable card, computed 100% locally from your Claude Code logs.",
+  "version": "0.2.0",
+  "description": "Your Claude Code usage, wrapped: year-in-review report, live localhost dashboard, desktop token widget and a friends leaderboard. Runs locally.",
   "bin": {
     "ccwrapped": "bin/claude-wrapped.js",
     "claude-wrapped": "bin/claude-wrapped.js"
   },
   "files": [
     "bin",
-    "src"
+    "src",
+    "supabase",
+    "skills",
+    ".claude-plugin"
   ],
   "scripts": {
     "test": "node --test test/*.test.js",
@@ -26,7 +29,11 @@
     "tokens",
     "usage",
     "stats",
-    "cli"
+    "cli",
+    "dashboard",
+    "leaderboard",
+    "supabase",
+    "claude-code-plugin"
   ],
   "license": "Apache-2.0",
   "repository": {

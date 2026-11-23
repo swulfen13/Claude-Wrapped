@@ -94,3 +94,24 @@ test('html escapes data that could break out of the script tag', () => {
   const html = renderHtml(s, { lang: 'en' });
   assert.ok(!html.includes('</script><script>alert(1)'));
 });
+
+test('incremental reader only reads appended lines', async () => {
+  const { createIncrementalReader } = require('../src/parse');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cw-inc-'));
+  const f = path.join(dir, 's1.jsonl');
+  const recs = fixture().map((r) => JSON.stringify(r));
+  fs.writeFileSync(f, recs.slice(0, 2).join('\n') + '\n' + recs[2].slice(0, 20)); // last line half-written
+  const r = createIncrementalReader();
+  await r.update([f]);
+  assert.strictEqual(r.events().length, 2);
+  fs.appendFileSync(f, recs[2].slice(20) + '\n' + recs.slice(3).join('\n') + '\n');
+  assert.strictEqual(await r.update([f]), true);
+  assert.strictEqual(r.events().length, 4);
+  assert.strictEqual(await r.update([f]), false);
+});
+
+test('the skill ships the exact same schema as supabase/schema.sql', () => {
+  const a = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'schema.sql'), 'utf8');
+  const b = fs.readFileSync(path.join(__dirname, '..', 'skills', 'leaderboard-setup', 'schema.sql'), 'utf8');
+  assert.strictEqual(a, b, 'Run: cp supabase/schema.sql skills/leaderboard-setup/schema.sql');
+});

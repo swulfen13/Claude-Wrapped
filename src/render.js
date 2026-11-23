@@ -8,7 +8,7 @@ const safeJson = (v) => JSON.stringify(v).replace(/</g, '\\u003c');
 /** Builds one self-contained HTML file. Only fonts are loaded from the web; everything else is inline. */
 function renderHtml(stats, meta) {
   const css = fs.readFileSync(path.join(dir, 'styles.css'), 'utf8');
-  const js = fs.readFileSync(path.join(dir, 'client.js'), 'utf8');
+  const js = ['charts.js', 'card.js', 'client.js'].map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
   return `<!DOCTYPE html>
 <html lang="${meta.lang === 'de' ? 'de' : 'en'}">
 <head>

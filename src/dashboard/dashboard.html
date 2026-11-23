@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ccwrapped · Live dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>/*__CSS__*/</style>
+</head>
+<body class="dash">
+<header class="live">
+  <div class="live-top">
+    <span class="brand">ccwrapped</span>
+    <span class="pulse" id="pulse" title="Updates every few seconds">Live</span>
+    <span class="spacer"></span>
+    <a class="btn small light" href="/widget" target="_blank" rel="noopener">Open widget</a>
+    <a class="btn small light solid" id="wrappedLink" href="/wrapped" target="_blank" rel="noopener">Open my Wrapped</a>
+  </div>
+  <p class="live-label">Tokens today</p>
+  <p class="live-count" id="liveToday">0</p>
+  <p class="live-sub" id="liveSub">Reading your Claude Code logs…</p>
+  <div class="spark" id="spark" aria-label="Tokens per minute, last hour"></div>
+  <div class="spark-axis"><span>60 min ago</span><span>now</span></div>
+</header>
+
+<main class="dash-main">
+  <nav class="tabs" id="ranges" aria-label="Time range">
+    <button data-range="today">Today</button>
+    <button data-range="week">7 days</button>
+    <button data-range="month">30 days</button>
+    <button data-range="year" aria-pressed="true">This year</button>
+    <button data-range="all">All time</button>
+  </nav>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="grid2">
+    <section class="panel"><h3 id="activityTitle">Activity</h3><p class="note" id="activityNote"></p><div class="heat-wrap" id="activity"></div></section>
+    <section class="panel"><h3>Models</h3><p class="note">Share of tokens per model.</p><div id="models"></div></section>
+  </div>
+  <div class="grid2">
+    <section class="panel"><h3>Projects</h3><div id="projects"></div></section>
+    <section class="panel"><h3>Tools</h3><div id="tools"></div></section>
+  </div>
+
+  <section class="panel" id="board">
+    <div class="panel-head">
+      <div><h3>Leaderboard</h3><p class="note" id="boardNote">Who burned the most tokens.</p></div>
+      <nav class="tabs small" id="periods" aria-label="Leaderboard period">
+        <button data-period="today">Today</button>
+        <button data-period="week" aria-pressed="true">Week</button>
+        <button data-period="month">Month</button>
+        <button data-period="year">Year</button>
+        <button data-period="all">All time</button>
+      </nav>
+    </div>
+    <div id="boardBody"></div>
+  </section>
+
+  <section class="panel" id="designer">
+    <h3>Card designer</h3>
+    <p class="note">Build your own share card from the range above, then download it.</p>
+    <div class="designer">
+      <canvas id="card" width="1080" height="1350" aria-label="Card preview"></canvas>
+      <form id="cardForm" class="controls" onsubmit="return false">
+        <fieldset>
+          <legend>Theme</legend>
+          <div class="swatches" id="themes"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Format</legend>
+          <div class="seg" id="formats"></div>
+        </fieldset>
+        <label class="field">Title <input id="cardTitle" maxlength="48" placeholder="My 2026 with Claude Code"></label>
+        <label class="field">Big number
+          <select id="cardHero">
+            <option value="tokens">Tokens</option>
+            <option value="hours">Active hours</option>
+            <option value="cost">Est. API value</option>
+            <option value="prompts">Prompts</option>
+            <option value="lines">Lines written</option>
+          </select>
+        </label>
+        <fieldset>
+          <legend>Stats on the card <span class="note" id="statCount"></span></legend>
+          <div class="checks" id="cardStats"></div>
+        </fieldset>
+        <label class="check"><input type="checkbox" id="cardAnon"> Hide project names</label>
+        <div><button class="btn" id="cardDownload" type="button">Download card</button></div>
+      </form>
+    </div>
+  </section>
+</main>
+<footer>Everything here is computed on your machine from your Claude Code logs. Not affiliated with Anthropic.</footer>
+<script>/*__META__*/</script>
+<script>/*__JS__*/</script>
+</body>
+</html>

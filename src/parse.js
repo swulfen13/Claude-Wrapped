@@ -144,4 +144,56 @@ async function parseFiles(files, onProgress) {
   return { events: collector.events(), badLines };
 }
 
-module.exports = { createCollector, parseFiles, projectName };
+/**
+ * Keeps a collector alive and only reads the bytes that were appended to each
+ * log file since the last call. Used by the live dashboard.
+ */
+function createIncrementalReader() {
+  const collector = createCollector();
+  const offsets = new Map(); // file -> { size, rest }
+
+  async function update(files) {
+    let changed = false;
+    for (const file of files) {
+      let st;
+      try {
+        st = fs.statSync(file);
+      } catch {
+        continue;
+      }
+      const prev = offsets.get(file) || { size: 0, rest: '' };
+      if (st.size === prev.size) continue;
+      const start = st.size < prev.size ? 0 : prev.size; // file was rewritten
+      const rest = st.size < prev.size ? '' : prev.rest;
+      const chunk = await readRange(file, start, st.size);
+      const text = rest + chunk;
+      const lines = text.split('\n');
+      const tail = lines.pop();
+      for (const line of lines) {
+        if (!line || line[0] !== '{') continue;
+        try {
+          collector.add(JSON.parse(line), file);
+        } catch {
+          /* partial or broken line */
+        }
+      }
+      offsets.set(file, { size: st.size, rest: tail });
+      changed = true;
+    }
+    return changed;
+  }
+
+  return { update, events: () => collector.events() };
+}
+
+function readRange(file, start, end) {
+  return new Promise((resolve, reject) => {
+    const parts = [];
+    fs.createReadStream(file, { start, end: end - 1 })
+      .on('data', (c) => parts.push(c))
+      .on('end', () => resolve(Buffer.concat(parts).toString('utf8')))
+      .on('error', reject);
+  });
+}
+
+module.exports = { createCollector, createIncrementalReader, parseFiles, projectName };
