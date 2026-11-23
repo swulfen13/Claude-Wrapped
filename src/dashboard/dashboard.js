@@ -53,6 +53,15 @@
       parts.push(`${money(l.today.cost)} at API prices`);
       if (l.last) parts.push(`last reply: ${esc(l.last.model)} in ${esc(META.demo ? l.last.project : l.last.project)}, ${ago(l.last.ts)}`);
       $('liveSub').innerHTML = parts.join(' · ');
+      const bud = l.budget;
+      const head = document.querySelector('.live');
+      head.classList.toggle('warn', !!(bud && bud.warn && !bud.over));
+      head.classList.toggle('over', !!(bud && bud.over));
+      if (bud) {
+        const lim = bud.kind === 'usd' ? money(bud.limit) : `${compact(bud.limit)} tokens`;
+        $('budget').hidden = false;
+        $('budget').innerHTML = `<span class="bbar"><i style="width:${Math.min(bud.ratio, 1) * 100}%"></i></span> ${bud.over ? 'Over your daily budget: ' : ''}${pct(bud.ratio)} of your ${lim} daily budget`;
+      } else $('budget').hidden = true;
       const max = Math.max(...l.perMinute, 1);
       $('spark').innerHTML = l.perMinute.map((v) => `<i style="height:${(v / max) * 100}%" title="${compact(v)}"></i>`).join('');
       const p = $('pulse');
@@ -79,7 +88,12 @@
       [nf(S.activeHours, S.activeHours < 10 ? 1 : 0), 'active hours'],
       [nf(S.totals.prompts), 'prompts'],
       [nf(S.sessions), 'sessions'],
-    ].map(([v, k]) => `<div class="kpi"><b>${v}</b><span>${k}</span></div>`).join('');
+    ].map(([v, k], i) => `<div class="kpi"><b>${v}</b><span>${k}</span>${i === 0 && S.previous && S.previous.change.tokens != null ? `<em class="delta ${S.previous.change.tokens >= 0 ? 'up' : 'down'}">${S.previous.change.tokens >= 0 ? '+' : ''}${pct(S.previous.change.tokens)} vs ${S.previous.year}</em>` : ''}</div>`).join('');
+
+    const got = (S.achievements || []).filter((a) => a.unlocked).length;
+    $('achNote').textContent = `${got} of ${(S.achievements || []).length} unlocked in ${RANGE_NAMES[range]}.`;
+    $('styleTag').innerHTML = S.archetype ? `Your style: <strong>${esc(S.archetype.title)}</strong>` : '';
+    $('ach').innerHTML = (S.achievements || []).map((a) => `<li class="${a.unlocked ? 'on' : 'off'}" title="${esc(a.desc)}"><span class="ico" aria-hidden="true">${a.icon}</span><span><b>${esc(a.title)}</b><small>${a.unlocked ? esc(a.desc) : esc(a.label)}</small><i class="prog"><i style="width:${a.progress * 100}%"></i></i></span></li>`).join('');
 
     if (range === 'today' || range === 'week') {
       $('activityTitle').textContent = 'Prompts by hour';
@@ -103,11 +117,34 @@
     drawCard();
   }
 
+  // ---------- exports ----------
+  function updateExports() {
+    $('exports').querySelectorAll('a[data-by]').forEach((a) => {
+      a.href = `/api/export.csv?range=${range}&by=${a.dataset.by}`;
+      a.setAttribute('download', '');
+    });
+  }
+
   // ---------- leaderboard ----------
+  let rankBy = 'tokens';
+  let lastRows = [];
+  const PERIOD_WORD = { today: 'day', week: 'week', month: 'month', year: 'year', all: 'all time' };
+  const BY_LABEL = { tokens: 'tokens', activeDays: 'active days', prompts: 'prompts' };
+  const fmtBy = (x) => (rankBy === 'activeDays' ? nf(x.activeDays) : compact(x[rankBy]));
+  function rerank(rows) {
+    const sorted = [...rows].sort((a, b) => b[rankBy] - a[rankBy] || a.name.localeCompare(b.name));
+    let rank = 0, prev = null;
+    return sorted.map((r, i) => {
+      if (r[rankBy] !== prev) rank = i + 1;
+      prev = r[rankBy];
+      return { ...r, rank };
+    });
+  }
   async function refreshBoard() {
     const body = $('boardBody');
     if (!META.boards.length) {
       $('periods').hidden = true;
+      $('rankBy').hidden = true;
       body.innerHTML = `<div class="setup">
         <strong>Compete with your friends.</strong> Leaderboards run on your own free Supabase project, so you and your friends own the data. Only daily totals are shared: tokens, prompts, cost and models. Never prompts, code or project names.
         <ol>
@@ -121,15 +158,18 @@
     $('boardNote').innerHTML = `${esc(b.name)}. You're on it as <strong>${esc(b.me)}</strong>.`;
     try {
       const r = await getJSON(`/api/board?board=0&period=${period}`);
-      const max = Math.max(...r.rows.map((x) => x.tokens), 1);
-      body.innerHTML = (r.rows.length
-        ? `<ol class="lb">${r.rows.map((x) => `<li class="${x.me ? 'me' : ''}">
+      const rows = rerank(r.rows);
+      lastRows = rows;
+      const max = Math.max(...rows.map((x) => x[rankBy]), 1);
+      body.innerHTML = (rows.length
+        ? `<ol class="lb">${rows.map((x) => `<li class="${x.me ? 'me' : ''}">
             <span class="rk">${x.rank}</span>
             <span class="who">${esc(x.name)}<small>${x.topModel ? esc(x.topModel) + ' · ' : ''}${nf(x.prompts)} prompts · ${nf(x.activeDays)} days</small></span>
-            <span class="track"><span style="width:${(x.tokens / max) * 100}%"></span></span>
-            <span class="tok">${compact(x.tokens)}</span></li>`).join('')}</ol>`
+            <span class="track"><span style="width:${(x[rankBy] / max) * 100}%"></span></span>
+            <span class="tok">${fmtBy(x)}${rankBy === 'activeDays' ? '<small> days</small>' : ''}</span></li>`).join('')}</ol>`
         : '<p class="note">Nobody has synced yet.</p>') +
-        `<div class="invite"><span>Invite a friend:</span><code class="cmd">npx ccwrapped board join ${esc(b.invite)} --me Name</code><button class="btn ghost small" id="copyInvite" type="button">Copy</button><button class="btn ghost small" id="syncNow" type="button">Sync now</button></div>`;
+        `<div class="invite"><span>Invite a friend:</span><code class="cmd">npx ccwrapped board join ${esc(b.invite)} --me Name</code><button class="btn ghost small" id="copyInvite" type="button">Copy</button><button class="btn ghost small" id="syncNow" type="button">Sync now</button>${rows.length ? '<button class="btn small" id="winnerCard" type="button">Make winner card</button>' : ''}</div>`;
+      if ($('winnerCard')) $('winnerCard').onclick = () => drawWinner(b.name);
       $('copyInvite').onclick = (e) => navigator.clipboard.writeText(`npx ccwrapped board join ${b.invite} --me Name`).then(() => (e.target.textContent = 'Copied'));
       $('syncNow').onclick = async (e) => {
         e.target.textContent = 'Syncing…';
@@ -160,6 +200,9 @@
     lines: { label: 'lines written', get: (S) => compact(S.linesWritten) },
     tools: { label: 'tool calls', get: (S) => compact(S.toolCalls) },
     right: { label: '“absolutely right”s', get: (S) => nf(S.absolutelyRight) },
+    style: { label: 'coding style', get: (S) => (S.archetype ? S.archetype.title.replace(/^The /, '') : '–') },
+    achievements: { label: 'achievements', get: (S) => `${(S.achievements || []).filter((a) => a.unlocked).length}/${(S.achievements || []).length}` },
+    yoy: { label: 'vs last year', get: (S) => (S.previous && S.previous.change.tokens != null ? `${S.previous.change.tokens >= 0 ? '+' : ''}${pct(S.previous.change.tokens)}` : '–') },
   };
   const HERO = {
     tokens: (S) => [compact(S.totals.tokens), 'tokens'],
@@ -214,12 +257,35 @@
     $('cardAnon').onchange = (e) => { design.anon = e.target.checked; save(); drawCard(); };
     $('cardDownload').onclick = () => {
       const a = document.createElement('a');
-      a.download = `ccwrapped-${range}-${design.format}.png`;
+      a.download = winnerMode ? `ccwrapped-winner-${period}.png` : `ccwrapped-${range}-${design.format}.png`;
       a.href = $('card').toDataURL('image/png');
       a.click();
     };
   }
+  let winnerMode = false;
+  function drawWinner(boardName) {
+    if (!lastRows.length) return;
+    winnerMode = true;
+    const [w, ...rest] = lastRows;
+    const word = PERIOD_WORD[period];
+    const total = lastRows.reduce((s, x) => s + x[rankBy], 0);
+    CCWCard.draw($('card'), {
+      theme: design.theme,
+      format: design.format,
+      subtitle: `${boardName} · ${period === 'all' ? 'all time' : 'this ' + word}`,
+      heading: ['Token king', period === 'all' ? 'of all time' : `of the ${word}`],
+      hero: { value: w.name, label: `${fmtBy(w)} ${BY_LABEL[rankBy]}` },
+      stats: [
+        ...rest.slice(0, 3).map((x) => ({ value: x.name, label: `#${x.rank} · ${fmtBy(x)} ${BY_LABEL[rankBy]}` })),
+        { value: rankBy === 'activeDays' ? nf(total) : compact(total), label: `${BY_LABEL[rankBy]} on the board` },
+      ],
+      stamp: '#1',
+      footer: 'npx ccwrapped',
+    });
+    $('designer').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+  }
   function drawCard() {
+    winnerMode = false;
     if (!stats) return;
     const S = stats;
     const [hv, hl] = (HERO[design.hero] || HERO.tokens)(S);
@@ -242,6 +308,7 @@
     if (!b) return;
     range = b.dataset.range;
     [...$('ranges').children].forEach((x) => x.setAttribute('aria-pressed', x === b));
+    updateExports();
     refreshStats();
   };
   $('periods').onclick = (e) => {
@@ -251,6 +318,14 @@
     [...$('periods').children].forEach((x) => x.setAttribute('aria-pressed', x === b));
     refreshBoard();
   };
+  $('rankBy').onclick = (e) => {
+    const b = e.target.closest('[data-by]');
+    if (!b) return;
+    rankBy = b.dataset.by;
+    [...$('rankBy').children].forEach((x) => x.setAttribute('aria-pressed', x === b));
+    refreshBoard();
+  };
+  updateExports();
   buildControls();
   wireControls();
   refreshLive();

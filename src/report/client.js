@@ -43,6 +43,12 @@
       favTool: (t) => `Favorite tool: ${t}.`,
       planMode: 'plans made in plan mode',
       subagents: 'subagents sent off',
+      yoy: (p, y) => `That's ${p} compared to ${y}.`,
+      styleKicker: 'Your coding style',
+      styleBlurb: {},
+      achKicker: 'Achievements unlocked',
+      achOf: (a, b) => `${a} of ${b}`,
+      achSub: 'Locked ones show how close you are.',
       valueKicker: 'At API prices, this year would have cost',
       valueSub: 'An estimate from public list prices per model. If you’re on a Pro or Max plan, you paid your subscription, not this.',
       shareKicker: 'Share your Wrapped',
@@ -119,6 +125,19 @@
       favTool: (t) => `Lieblings-Tool: ${t}.`,
       planMode: 'Pläne im Plan-Modus',
       subagents: 'Subagents losgeschickt',
+      yoy: (p, y) => `Das sind ${p} im Vergleich zu ${y}.`,
+      styleKicker: 'Dein Coding-Stil',
+      styleBlurb: {
+        refactorer: 'Claude hat vor allem deinen Code bearbeitet und geschrieben.',
+        researcher: 'Viel lesen, suchen und graben, bevor sich etwas geändert hat.',
+        commander: 'Du hast Claude im Terminal beschäftigt, Befehl für Befehl.',
+        delegator: 'Du hast Subagents losgeschickt, die parallel arbeiten.',
+        architect: 'Erst planen, dann bauen.',
+        explorer: 'Von allem etwas, keine Gewohnheit dominiert.',
+      },
+      achKicker: 'Freigeschaltete Achievements',
+      achOf: (a, b) => `${a} von ${b}`,
+      achSub: 'Bei den gesperrten siehst du, wie nah du dran bist.',
       valueKicker: 'Zu API-Preisen hätte dein Jahr gekostet',
       valueSub: 'Geschätzt mit den öffentlichen Listenpreisen pro Modell. Mit Pro- oder Max-Abo hast du nur dein Abo bezahlt, nicht das hier.',
       shareKicker: 'Teil dein Wrapped',
@@ -167,6 +186,7 @@
   const nf = (n, d = 0) => new Intl.NumberFormat(L, { maximumFractionDigits: d }).format(n);
   const compact = (n) => new Intl.NumberFormat(L, { notation: 'compact', maximumFractionDigits: n >= 1e9 ? 2 : 1 }).format(n);
   const money = (n) => new Intl.NumberFormat(L, { style: 'currency', currency: 'USD', maximumFractionDigits: n >= 100 ? 0 : 2 }).format(n);
+  const signedPct = (x) => (x >= 0 ? '+' : '') + new Intl.NumberFormat(L, { style: 'percent', maximumFractionDigits: 0 }).format(x);
   const pct = (x) => new Intl.NumberFormat(L, { style: 'percent', maximumFractionDigits: 0 }).format(x);
   const monthName = (i, style = 'long') => new Intl.DateTimeFormat(L, { month: style }).format(new Date(2000, i, 1));
   const dateLong = (s) => new Intl.DateTimeFormat(L, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(s + 'T12:00:00'));
@@ -210,7 +230,8 @@
   s('bg-signal', `
     <p class="kicker">${esc(T.tokensKicker)}</p>
     <p class="mega">${count(D.totals.tokens, 'compact')}</p>
-    <p class="sub">${esc(T.tokensSub(compact(D.totals.output), compact(D.totals.cacheRead), nf(Math.max(books, 0.1), books < 10 ? 1 : 0)))}</p>`);
+    <p class="sub">${esc(T.tokensSub(compact(D.totals.output), compact(D.totals.cacheRead), nf(Math.max(books, 0.1), books < 10 ? 1 : 0)))}</p>
+    ${D.previous && D.previous.change.tokens != null ? `<p class="yoy">${esc(T.yoy(signedPct(D.previous.change.tokens), D.previous.year))}</p>` : ''}`);
 
   s('bg-mint', `
     <p class="kicker">${esc(T.timeKicker)}</p>
@@ -273,6 +294,21 @@
       ${D.subagentCalls ? `<div class="fact"><b>${nf(D.subagentCalls)}</b><span>${esc(T.subagents)}</span></div>` : ''}
       <div class="fact"><b>${nf(D.absolutelyRight)}</b><span>${esc(T.absolutely)}</span></div>
     </div>`);
+
+  if (D.archetype) {
+    s('bg-blush', `
+      <p class="kicker">${esc(T.styleKicker)}</p>
+      <h2 class="big">${esc(D.archetype.title)}</h2>
+      <p class="sub">${esc(T.styleBlurb[D.archetype.id] || D.archetype.blurb)}</p>`);
+  }
+  if (D.achievements) {
+    const got = D.achievements.filter((a) => a.unlocked);
+    s('bg-mint', `
+      <p class="kicker">${esc(T.achKicker)}</p>
+      <p class="mega">${esc(T.achOf(got.length, D.achievements.length))}</p>
+      <ul class="ach">${D.achievements.map((a) => `<li class="${a.unlocked ? 'on' : 'off'}" title="${esc(a.desc)}"><span class="ico" aria-hidden="true">${a.icon}</span><span><b>${esc(a.title)}</b><small>${a.unlocked ? esc(a.desc) : esc(a.label)}</small></span></li>`).join('')}</ul>
+      <p class="sub">${esc(T.achSub)}</p>`);
+  }
 
   s('bg-ink', `
     <p class="kicker">${esc(T.valueKicker)}</p>

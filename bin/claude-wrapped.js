@@ -7,9 +7,9 @@ const http = require('http');
 const { spawn } = require('child_process');
 const { findLogFiles } = require('../src/find');
 const { parseFiles } = require('../src/parse');
-const { computeStats } = require('../src/stats');
+const { computeStats, withPrevious } = require('../src/stats');
 const { renderHtml } = require('../src/render');
-const { demoEvents } = require('../src/demo');
+const { demoHistory } = require('../src/demo');
 const board = require('../src/board');
 const pkg = require('../package.json');
 
@@ -23,7 +23,11 @@ Usage
   npx ccwrapped widget                    Small always-there live token counter
   npx ccwrapped board <command>           Friends leaderboard (see below)
   npx ccwrapped sync                      Upload your daily totals to your boards
-  npx ccwrapped leaderboard [--period week]
+  npx ccwrapped leaderboard [--period week] [--by tokens|days|prompts]
+  npx ccwrapped statusline --install      Show today's tokens in Claude Code's status bar
+  npx ccwrapped budget --usd 20           Daily budget warning (or --tokens 50M, --off)
+  npx ccwrapped export --by project       CSV export (project, day, model or session)
+  npx ccwrapped badge --metric tokens     SVG badge for your GitHub profile README
 
 Report options
   --year <yyyy>     Year to wrap (default: current year)
@@ -50,7 +54,7 @@ Leaderboard (runs on your own Supabase project, see supabase/schema.sql)
   leaderboard [--period today|week|month|year|all] [--board 0]
 `;
 
-const VALUE_FLAGS = new Set(['--year', '--name', '--lang', '--out', '--dir', '--port', '--url', '--key', '--me', '--period', '--board']);
+const VALUE_FLAGS = new Set(['--year', '--name', '--lang', '--out', '--dir', '--port', '--url', '--key', '--me', '--period', '--board', '--by', '--usd', '--tokens', '--metric']);
 
 function parseArgs(argv) {
   const o = { open: true, _: [] };
@@ -67,6 +71,9 @@ function parseArgs(argv) {
     else if (a === '--json') o.json = true;
     else if (a === '--demo') o.demo = true;
     else if (a === '--no-open') o.open = false;
+    else if (a === '--install') o.install = true;
+    else if (a === '--force') o.force = true;
+    else if (a === '--off') o.off = true;
     else if (a.startsWith('-')) fail(`Unknown option: ${a}. Run with --help to see all options.`);
     else o._.push(a);
   }
@@ -133,7 +140,7 @@ const compact = (n) => new Intl.NumberFormat('en-US', { notation: 'compact', max
 const int = (n) => new Intl.NumberFormat('en-US').format(Math.round(n));
 
 async function loadEvents(o, year) {
-  if (o.demo) return demoEvents(year || new Date().getFullYear());
+  if (o.demo) return demoHistory(year || new Date().getFullYear());
   const { roots, files } = findLogFiles(o.dir);
   if (!files.length) {
     fail(
@@ -171,7 +178,7 @@ function printSummary(s, label) {
 async function cmdReport(o) {
   const year = o.all ? null : o.year || new Date().getFullYear();
   const events = await loadEvents(o, year);
-  const stats = computeStats(events, { year });
+  const stats = withPrevious(computeStats(events, { year }), events);
   if (o.json) return console.log(JSON.stringify(stats, null, 2));
   const label = year == null ? 'all time' : String(year);
   if (stats.empty) console.log(`\n  No Claude Code activity in ${label}. Try --all or another --year.\n`);
@@ -322,15 +329,97 @@ async function cmdLeaderboard(o) {
   const cfg = requireBoards();
   const { b } = pickBoard(cfg, o);
   const period = o.period || 'week';
-  const rows = await board.leaderboard(b, period).catch((e) => fail(e.message));
-  console.log(`\n  ${c.b(b.boardName)} ${c.dim('· ' + period)}\n`);
-  const max = Math.max(...rows.map((r) => r.tokens), 1);
+  const by = o.by || 'tokens';
+  const field = { tokens: 'tokens', days: 'activeDays', prompts: 'prompts', output: 'output' }[by];
+  if (!field) fail('--by must be tokens, days, prompts or output');
+  const rows = board.rerank(await board.leaderboard(b, period).catch((e) => fail(e.message)), field);
+  console.log(`\n  ${c.b(b.boardName)} ${c.dim('· ' + period + ' · by ' + by)}\n`);
+  const max = Math.max(...rows.map((r) => r[field]), 1);
   for (const r of rows) {
-    const bar = '█'.repeat(Math.max(1, Math.round((r.tokens / max) * 24)));
+    const bar = '█'.repeat(Math.max(1, Math.round((r[field] / max) * 24)));
     const name = r.me ? c.y(c.b(r.name.padEnd(14))) : r.name.padEnd(14);
-    console.log(`  ${String(r.rank).padStart(2)}  ${name} ${c.bl(bar)} ${c.b(compact(r.tokens))} ${c.dim(r.topModel || '')}`);
+    const val = field === 'activeDays' ? `${r.activeDays} days` : compact(r[field]);
+    console.log(`  ${String(r.rank).padStart(2)}  ${name} ${c.bl(bar)} ${c.b(val)} ${c.dim(r.topModel || '')}`);
   }
   console.log('');
+}
+
+function stableCommand() {
+  // npx copies live in a cache that can be cleaned up, so prefer a global install.
+  const viaNpx = /[\\/]_npx[\\/]/.test(__filename);
+  if (!viaNpx) return { command: `"${process.execPath}" "${path.resolve(__filename)}" statusline`, viaNpx };
+  return { command: 'ccwrapped statusline', viaNpx };
+}
+
+async function cmdStatusline(o) {
+  const sl = require('../src/statusline');
+  if (!o.install) return sl.statusline();
+  const { command, viaNpx } = stableCommand();
+  const r = sl.installStatusline({ force: o.force, command });
+  if (!r.changed) {
+    console.log(`\n  You already have a status line in ${r.file}:`);
+    console.log(c.dim(`    ${JSON.stringify(r.existing)}`));
+    console.log('  Run again with --force to replace it. A backup is saved next to the file.\n');
+    return;
+  }
+  console.log(`\n  ${c.g('✔')} Status line added to ${c.b(r.file)}`);
+  if (viaNpx) console.log(c.y('  It runs `ccwrapped statusline`, so install ccwrapped globally first: npm i -g ccwrapped'));
+  console.log(c.dim('  Restart Claude Code to see it. Run `ccwrapped serve` in the background to make it instant.\n'));
+}
+
+function cmdBudget(o) {
+  const { parseAmount } = require('../src/live');
+  const cfg = board.loadConfig();
+  if (o.off) {
+    delete cfg.budget;
+    board.saveConfig(cfg);
+    return console.log(`  ${c.g('✔')} Daily budget removed.`);
+  }
+  if (o.usd || o.tokens) {
+    const v = parseAmount(o.usd || o.tokens);
+    if (!(v > 0)) fail('Use a positive amount, e.g. --usd 20 or --tokens 50M');
+    cfg.budget = o.usd ? { usd: v } : { tokens: v };
+    board.saveConfig(cfg);
+    return console.log(`  ${c.g('✔')} Daily budget set to ${c.b(o.usd ? '$' + v : compact(v) + ' tokens')}. The widget, dashboard and status line warn at 80% and turn red at 100%.`);
+  }
+  if (!cfg.budget) return console.log('  No daily budget set. Example: ccwrapped budget --usd 20  or  --tokens 50M');
+  console.log(`  Daily budget: ${c.b(cfg.budget.usd ? '$' + cfg.budget.usd : compact(cfg.budget.tokens) + ' tokens')}`);
+}
+
+async function cmdExport(o) {
+  const { exportCsv } = require('../src/export');
+  const { sinceFor } = require('../src/server');
+  const year = o.all ? null : o.period ? null : o.year || new Date().getFullYear();
+  const events = await loadEvents(o, year);
+  const by = o.by || 'project';
+  const csv = (() => {
+    try {
+      return exportCsv(events, { by, year, since: o.period ? sinceFor(o.period) : null });
+    } catch (e) {
+      return fail(e.message);
+    }
+  })();
+  const out = path.resolve(o.out || `ccwrapped-${by}-${o.period || (year == null ? 'all-time' : year)}.csv`);
+  fs.writeFileSync(out, csv);
+  console.log(`  ${c.g('✔')} ${csv.trim().split('\n').length - 1} rows saved to ${c.b(out)}`);
+}
+
+async function cmdBadge(o) {
+  const { badgeFor } = require('../src/badge');
+  const year = o.all ? null : o.year || new Date().getFullYear();
+  const events = await loadEvents(o, year);
+  const metric = o.metric || 'tokens';
+  let svg;
+  try {
+    svg = badgeFor(computeStats(events, { year }), metric);
+  } catch (e) {
+    fail(e.message);
+  }
+  const out = path.resolve(o.out || `ccwrapped-${metric}.svg`);
+  fs.writeFileSync(out, svg);
+  console.log(`\n  ${c.g('✔')} Badge saved to ${c.b(out)}`);
+  console.log('  Commit it to your profile repo (github.com/<you>/<you>) and add this to its README:\n');
+  console.log(`    ${c.y(`[![Claude Code](./${path.basename(out)})](https://github.com/swulfen13/Claude-Wrapped)`)}\n`);
 }
 
 async function main() {
@@ -344,6 +433,10 @@ async function main() {
   if (cmd === 'board') return cmdBoard(o);
   if (cmd === 'sync') return cmdSync(o);
   if (cmd === 'leaderboard' || cmd === 'lb') return cmdLeaderboard(o);
+  if (cmd === 'statusline') return cmdStatusline(o);
+  if (cmd === 'budget') return cmdBudget(o);
+  if (cmd === 'export') return cmdExport(o);
+  if (cmd === 'badge') return cmdBadge(o);
   fail(`Unknown command: ${cmd}. Run with --help.`);
 }
 

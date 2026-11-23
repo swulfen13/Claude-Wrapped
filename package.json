@@ -1,6 +1,6 @@
 {
   "name": "ccwrapped",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Your Claude Code usage, wrapped: year-in-review report, live localhost dashboard, desktop token widget and a friends leaderboard. Runs locally.",
   "bin": {
     "ccwrapped": "bin/claude-wrapped.js",

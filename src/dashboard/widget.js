@@ -24,6 +24,13 @@
       const max = Math.max(...l.perMinute, 1);
       $('spark').innerHTML = l.perMinute.map((v) => `<i style="height:${(v / max) * 100}%"></i>`).join('');
       $('last').textContent = l.last ? `Last reply: ${l.last.model} in ${l.last.project}` : '';
+      const bud = l.budget;
+      document.body.classList.toggle('over', !!(bud && bud.over));
+      if (bud) {
+        const lim = bud.kind === 'usd' ? money(bud.limit) : compact(bud.limit) + ' tokens';
+        $('budget').hidden = false;
+        $('budget').textContent = `${bud.over ? '⚠ ' : ''}${Math.round(bud.ratio * 100)}% of ${lim} daily budget`;
+      } else $('budget').hidden = true;
       $('pulse').classList.remove('stale');
     } catch (e) {
       $('pulse').classList.add('stale');

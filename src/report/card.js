@@ -75,7 +75,7 @@
     ctx.fillStyle = th.hero;
     const hs = fit(ctx, String(hero.value), W - 2 * M + 10, 800, square ? 220 : story ? 300 : 250, display, 110);
     ctx.fillText(String(hero.value), M - 6, y);
-    y += hs * 0.98;
+    y += hs * 1.04;
     ctx.fillStyle = th.text; ctx.font = `600 40px ${body}`; ctx.fillText(hero.label || '', M + 2, y);
 
     const stats = (opts.stats || []).slice(0, square ? 4 : 6);

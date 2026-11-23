@@ -6,11 +6,13 @@ const path = require('path');
 const { URL } = require('url');
 const { findLogFiles } = require('./find');
 const { createIncrementalReader } = require('./parse');
-const { computeStats } = require('./stats');
+const { computeStats, withPrevious } = require('./stats');
 const { liveStats } = require('./live');
 const { renderHtml } = require('./render');
-const { demoEvents } = require('./demo');
+const { demoHistory } = require('./demo');
 const board = require('./board');
+const { exportCsv } = require('./export');
+const { badgeFor } = require('./badge');
 
 const DASH = path.join(__dirname, 'dashboard');
 const REPORT = path.join(__dirname, 'report');
@@ -36,7 +38,7 @@ function page(file, meta) {
 function createServer(opts = {}) {
   const reader = createIncrementalReader();
   const demo = !!opts.demo;
-  let demoData = demo ? demoEvents(new Date().getFullYear()) : null;
+  let demoData = demo ? demoHistory(new Date().getFullYear()) : null;
   let files = [];
   let lastScan = 0;
   let lastRead = 0;
@@ -86,6 +88,7 @@ function createServer(opts = {}) {
         invite: board.makeInvite(b.url, b.key, b.code),
       })),
       sync: syncState,
+      budget: cfg.budget || null,
     };
   };
 
@@ -116,15 +119,31 @@ function createServer(opts = {}) {
       if (req.method === 'GET' && url.pathname === '/wrapped') {
         const y = url.searchParams.get('year');
         const year = y === 'all' ? null : Number(y) || new Date().getFullYear();
-        const stats = computeStats(await events(), { year });
+        const ev = await events();
+        const stats = withPrevious(computeStats(ev, { year }), ev);
         return html(res, renderHtml(stats, { lang: opts.lang || 'en', name: opts.name || null, anonymize: url.searchParams.has('anonymize') }));
       }
       if (req.method === 'GET' && url.pathname === '/api/meta') return json(res, 200, meta());
-      if (req.method === 'GET' && url.pathname === '/api/live') return json(res, 200, liveStats(await events()));
+      if (req.method === 'GET' && url.pathname === '/api/live') return json(res, 200, liveStats(await events(), Date.now(), board.loadConfig().budget));
+      if (req.method === 'GET' && url.pathname === '/api/export.csv') {
+        const range = url.searchParams.get('range') || 'year';
+        const by = url.searchParams.get('by') || 'project';
+        const csv = exportCsv(await events(), { by, since: sinceFor(range), year: range === 'year' ? new Date().getFullYear() : null });
+        res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="ccwrapped-${by}-${range}.csv"`, 'Cache-Control': 'no-store' });
+        return res.end(csv);
+      }
+      if (req.method === 'GET' && url.pathname === '/badge.svg') {
+        const ev = await events();
+        const svg = badgeFor(computeStats(ev, { year: new Date().getFullYear() }), url.searchParams.get('metric') || 'tokens');
+        res.writeHead(200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'no-store' });
+        return res.end(svg);
+      }
       if (req.method === 'GET' && url.pathname === '/api/stats') {
         const range = url.searchParams.get('range') || 'year';
         const year = range === 'year' ? new Date().getFullYear() : null;
-        const stats = computeStats(await events(), { year, since: sinceFor(range) });
+        const ev = await events();
+        let stats = computeStats(ev, { year, since: sinceFor(range) });
+        if (range === 'year') stats = withPrevious(stats, ev);
         return json(res, 200, { ...stats, rangeName: range });
       }
       if (req.method === 'GET' && url.pathname === '/api/board') {

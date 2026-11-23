@@ -21,6 +21,7 @@
   <p class="live-label">Tokens today</p>
   <p class="live-count" id="liveToday">0</p>
   <p class="live-sub" id="liveSub">Reading your Claude Code logs…</p>
+  <p class="budget-line" id="budget" hidden></p>
   <div class="spark" id="spark" aria-label="Tokens per minute, last hour"></div>
   <div class="spark-axis"><span>60 min ago</span><span>now</span></div>
 </header>
@@ -34,6 +35,13 @@
     <button data-range="all">All time</button>
   </nav>
 
+  <p class="exports" id="exports">Export CSV:
+    <a data-by="project" href="#">by project</a>
+    <a data-by="day" href="#">by day</a>
+    <a data-by="model" href="#">by model</a>
+    <a data-by="session" href="#">by session</a>
+  </p>
+
   <section class="kpis" id="kpis"></section>
 
   <div class="grid2">
@@ -45,9 +53,20 @@
     <section class="panel"><h3>Tools</h3><div id="tools"></div></section>
   </div>
 
+  <section class="panel" id="achPanel">
+    <div class="panel-head"><div><h3>Achievements</h3><p class="note" id="achNote"></p></div><p class="style-tag" id="styleTag"></p></div>
+    <ul class="ach" id="ach"></ul>
+  </section>
+
   <section class="panel" id="board">
     <div class="panel-head">
       <div><h3>Leaderboard</h3><p class="note" id="boardNote">Who burned the most tokens.</p></div>
+      <div class="board-controls">
+      <nav class="tabs small" id="rankBy" aria-label="Rank by">
+        <button data-by="tokens" aria-pressed="true">Tokens</button>
+        <button data-by="activeDays">Active days</button>
+        <button data-by="prompts">Prompts</button>
+      </nav>
       <nav class="tabs small" id="periods" aria-label="Leaderboard period">
         <button data-period="today">Today</button>
         <button data-period="week" aria-pressed="true">Week</button>
@@ -55,6 +74,7 @@
         <button data-period="year">Year</button>
         <button data-period="all">All time</button>
       </nav>
+      </div>
     </div>
     <div id="boardBody"></div>
   </section>

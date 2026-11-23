@@ -15,6 +15,11 @@ Pick the command that matches what the user asked for:
 | Their Wrapped / year in review | `npx ccwrapped` (add `--name "<name>"` if you know it, `--all` for all time, `--year 2025` for another year) |
 | A live dashboard | `npx ccwrapped serve`, then point them to http://localhost:4747 |
 | A small live token counter on their desktop | `npx ccwrapped widget` |
+| Token stats in Claude Code's status bar | `npm i -g ccwrapped` then `ccwrapped statusline --install` (ask before replacing an existing status line, which needs `--force`) |
+| A warning when they spend too much | `npx ccwrapped budget --usd <amount>` or `--tokens <amount>` |
+| A spreadsheet of their usage, for example per client project | `npx ccwrapped export --by project` (or `day`, `model`, `session`) |
+| A badge for their GitHub profile | `npx ccwrapped badge --metric tokens` |
+| Their achievements or coding style | `npx ccwrapped --json --no-open` and read `achievements` and `archetype` |
 | A leaderboard with friends | Use the `leaderboard-setup` skill |
 
 Notes:

@@ -163,7 +163,20 @@ async function leaveBoard(board, fetchImpl) {
   return rpc(board, 'ccw_leave_board', { p_member_id: board.memberId, p_secret: board.secret }, fetchImpl);
 }
 
+/** Re-ranks leaderboard rows by another field (ties share a rank). */
+function rerank(rows, field = 'tokens') {
+  const sorted = [...rows].sort((a, b) => b[field] - a[field] || a.name.localeCompare(b.name));
+  let rank = 0;
+  let prev = null;
+  return sorted.map((r, i) => {
+    if (r[field] !== prev) rank = i + 1;
+    prev = r[field];
+    return { ...r, rank };
+  });
+}
+
 module.exports = {
+  rerank,
   CONFIG_FILE,
   loadConfig,
   saveConfig,

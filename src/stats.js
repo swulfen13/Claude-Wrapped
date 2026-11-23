@@ -1,6 +1,7 @@
 'use strict';
 const path = require('path');
 const { costOf, prettyModel } = require('./pricing');
+const { archetype, achievements } = require('./achievements');
 
 const IDLE_GAP_MS = 10 * 60 * 1000; // gaps longer than this don't count as active time
 
@@ -177,7 +178,9 @@ function computeStats(allEvents, opts = {}) {
   const first = events.length ? events[0].ts : null;
   const last = events.length ? events[events.length - 1].ts : null;
 
-  return {
+  const weekendDays = dayList.filter((d) => (d.prompts || d.tokens) && [0, 6].includes(new Date(d.date + 'T12:00:00').getDay())).length;
+
+  const result = {
     generatedAt: new Date().toISOString(),
     year,
     range: { first, last },
@@ -217,7 +220,34 @@ function computeStats(allEvents, opts = {}) {
     absolutelyRight,
     planMode,
     subagentCalls,
+    weekendDays,
   };
+  result.archetype = archetype(result);
+  result.achievements = achievements(result);
+  return result;
 }
 
-module.exports = { computeStats, prettyModel };
+/** Adds last year's headline numbers and the change in percent, when there is data for it. */
+function withPrevious(stats, allEvents) {
+  if (stats.year == null) return stats;
+  const prev = computeStats(allEvents, { year: stats.year - 1 });
+  if (prev.empty) return stats;
+  const delta = (a, b) => (b > 0 ? (a - b) / b : null);
+  stats.previous = {
+    year: prev.year,
+    tokens: prev.totals.tokens,
+    prompts: prev.totals.prompts,
+    activeHours: prev.activeHours,
+    activeDays: prev.activeDays,
+    cost: prev.totals.cost,
+    change: {
+      tokens: delta(stats.totals.tokens, prev.totals.tokens),
+      prompts: delta(stats.totals.prompts, prev.totals.prompts),
+      activeHours: delta(stats.activeHours, prev.activeHours),
+      activeDays: delta(stats.activeDays, prev.activeDays),
+    },
+  };
+  return stats;
+}
+
+module.exports = { computeStats, withPrevious, prettyModel };

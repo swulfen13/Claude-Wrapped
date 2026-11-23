@@ -1,6 +1,8 @@
 # ccwrapped
 
-**Your Claude Code usage, wrapped.** A year-in-review report, a live dashboard on localhost, a desktop token counter and a leaderboard to see which of your friends burns the most tokens. Everything is computed locally from the logs Claude Code already keeps on your machine.
+**Your Claude Code usage, wrapped.** A year-in-review report, a live dashboard on localhost, a desktop token counter, a status line for Claude Code, achievements and a leaderboard to see which of your friends burns the most tokens. Everything is computed locally from the logs Claude Code already keeps on your machine.
+
+![Claude Code badge](assets/badge-example.svg)
 
 ```bash
 npx ccwrapped           # your Wrapped report
@@ -29,7 +31,12 @@ A story you scroll through, then the full breakdown.
 - **Tools:** tool calls, favorite tool, lines written, files touched, plans and subagents. Also how often Claude said "You're absolutely right"
 - **API value:** what it would have cost at API list prices
 - **Activity calendar:** a GitHub-style heatmap, plus charts by month, weekday and hour
+- **Coding style:** are you The Refactorer, The Researcher, The Commander, The Delegator, The Architect or The Explorer?
+- **Achievements:** 16 to unlock, from *First million* and *3 AM club* to *Billionaire* and *Absolutely right*
+- **Year over year:** how this year compares to the last one
 - **Share card:** a PNG ready for X, LinkedIn or Instagram
+
+![Achievements](assets/achievements.png)
 
 ## Live dashboard
 
@@ -46,6 +53,29 @@ A story you scroll through, then the full breakdown.
 ![Card designer](assets/designer.png)
 
 The dashboard only listens on `127.0.0.1`, so nobody else on your network can open it.
+
+## Status line for Claude Code
+
+Show today's tokens, cost and burn rate right in Claude Code's status bar:
+
+```
+Opus 4.5 │ my-app │ 🔥 12.4M today │ $8.20 │ ~84K/min │ 41% of $20
+```
+
+```bash
+npm i -g ccwrapped
+ccwrapped statusline --install
+```
+
+This adds a `statusLine` entry to `~/.claude/settings.json` and keeps everything else. If you already have a status line, it asks you to pass `--force` and saves a backup first. It's instant while `ccwrapped serve` is running and reads only today's logs otherwise.
+
+## Daily budget
+
+```bash
+ccwrapped budget --usd 20       # or --tokens 50M, or --off
+```
+
+The dashboard, the widget and the status line turn yellow at 80% and red once you go over. Handy if you pay per token through the API.
 
 ## Desktop widget
 
@@ -93,11 +123,35 @@ Your totals sync every 10 minutes while `serve` is running. You can also run `np
 
 ```bash
 npx ccwrapped leaderboard --period week   # today, week, month, year, all
+npx ccwrapped leaderboard --by days       # tokens, days, prompts, output
 npx ccwrapped board invite                # print the invite again
 npx ccwrapped board leave                 # leave and delete your data on that board
 ```
 
+In the dashboard you can rank by **tokens, active days or prompts**, so the friend with the most consistent week can win too. **Make winner card** turns the current ranking into a "Token king of the week" card to post in your group chat.
+
+<p><img src="assets/winner-card.png" width="320" alt="Winner card"></p>
+
 **How it stays safe:** the tables have row level security turned on and no policies, so the public key can't read or write them. Everything goes through a few database functions. Joining needs the invite code, and writing your stats needs a secret that only your machine knows. The database only stores a hash of it.
+
+## CSV export
+
+For invoices, client reports or your own spreadsheets:
+
+```bash
+npx ccwrapped export --by project         # also: day, model, session
+npx ccwrapped export --by day --period month
+```
+
+Each row has sessions, prompts, active hours, all four token types, estimated cost and first and last activity. The dashboard has the same export for whatever range you're looking at.
+
+## Badge for your GitHub profile
+
+```bash
+npx ccwrapped badge                       # --metric tokens, hours, streak, cost, achievements, style
+```
+
+It saves an SVG and prints the Markdown line to paste into your profile README.
 
 ## All options
 

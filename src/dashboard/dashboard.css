@@ -89,3 +89,26 @@ code.cmd { display: inline-block; background: var(--ink); color: var(--paper); p
 .dash .grid2 > * { min-width: 0; }
 .dash .grid2 { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
 .dash .chart.heat { min-width: 0 !important; }
+.delta { display: block; font-style: normal; font-size: 13px; font-weight: 600; margin-top: 4px; }
+.delta.up { color: #11865b; }
+.delta.down { color: #c2255c; }
+.style-tag { margin: 0; font-size: 16px; }
+.dash .ach { max-width: none; }
+.dash .ach .ico { background: #fff; }
+.prog { display: block; height: 4px; background: #e4e5f0; border-radius: 2px; margin-top: 5px; width: 120px; overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--cobalt); }
+.ach li.on .prog { display: none; }
+.budget-line { display: flex; align-items: center; gap: 10px; font-size: 15px; margin: -6px 0 16px; }
+.bbar { display: inline-block; width: 160px; height: 8px; border-radius: 4px; background: rgba(245, 245, 250, 0.2); overflow: hidden; }
+.bbar i { display: block; height: 100%; background: var(--mint); }
+.live.warn .bbar i { background: var(--signal); }
+.live.over .bbar i { background: var(--blush); }
+.live.over .live-count { color: var(--blush); }
+.live.over .budget-line { color: var(--blush); font-weight: 600; }
+.exports { font-size: 14px; margin: -12px 0 22px; display: flex; gap: 14px; flex-wrap: wrap; }
+.exports a { font-weight: 600; }
+.board-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+.lb .tok small { font-family: var(--body); font-size: 13px; font-weight: 500; }
+.widget.over .w-count { color: var(--blush); }
+.widget .w-budget { font-size: 12.5px; margin-top: 6px; }
+.widget.over .w-budget { color: var(--blush); font-weight: 600; }

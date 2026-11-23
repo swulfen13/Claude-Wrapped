@@ -44,7 +44,7 @@ function modelFor(month, r) {
   return r() < 0.6 ? 'claude-opus-4-5-20251101' : r() < 0.7 ? 'claude-sonnet-4-5-20250929' : 'claude-haiku-4-5-20251001';
 }
 
-function demoEvents(year = new Date().getFullYear(), seed = 42) {
+function demoEvents(year = new Date().getFullYear(), seed = 42, intensity = 1) {
   const r = rng(seed);
   const events = [];
   const now = new Date();
@@ -56,7 +56,7 @@ function demoEvents(year = new Date().getFullYear(), seed = 42) {
     const ramp = 0.35 + month / 14; // usage grows over the year
     const weekend = dow === 0 || dow === 6 ? 0.45 : 1;
     const vacation = month === 7 && d.getDate() > 10 && d.getDate() < 24 ? 0.05 : 1;
-    if (r() > ramp * weekend * vacation * 1.1) continue;
+    if (r() > ramp * weekend * vacation * 1.1 * intensity) continue;
     const nSessions = 1 + Math.floor(r() * (2 + month / 4));
     for (let s = 0; s < nSessions; s++) {
       sessionN++;
@@ -69,7 +69,7 @@ function demoEvents(year = new Date().getFullYear(), seed = 42) {
       const branch = r() < 0.6 ? 'main' : `feat/${['auth', 'charts', 'search', 'onboarding', 'perf'][Math.floor(r() * 5)]}`;
       for (let t = 0; t < turns; t++) {
         const base = { session, project: proj.name, branch, sidechain: false };
-        events.push({ ...base, ts, kind: 'prompt', planMode: r() < 0.04 });
+        events.push({ ...base, ts, kind: 'prompt', planMode: r() < 0.01 });
         const steps = 1 + Math.floor(r() * 6);
         for (let k = 0; k < steps; k++) {
           ts += 4000 + Math.floor(r() * 40000);
@@ -98,4 +98,9 @@ function demoEvents(year = new Date().getFullYear(), seed = 42) {
   return events.sort((a, b) => a.ts - b.ts);
 }
 
-module.exports = { demoEvents };
+/** Sample data for this year plus a quieter previous year, so year-over-year numbers show up. */
+function demoHistory(year = new Date().getFullYear()) {
+  return [...demoEvents(year - 1, 7, 0.3), ...demoEvents(year, 42)].sort((a, b) => a.ts - b.ts);
+}
+
+module.exports = { demoEvents, demoHistory };
