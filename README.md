@@ -5,9 +5,9 @@
 ![Claude Code badge](assets/badge-example.svg)
 
 ```bash
-npx ccyear           # your Wrapped report
-npx ccyear serve     # live dashboard on http://localhost:4747
-npx ccyear widget    # small live token counter window
+npx @swulfen/ccyear           # your Wrapped report
+npx @swulfen/ccyear serve     # live dashboard on http://localhost:4747
+npx @swulfen/ccyear widget    # small live token counter window
 ```
 
 Or install it as a Claude Code plugin and just ask Claude for your stats:
@@ -40,7 +40,7 @@ A story you scroll through, then the full breakdown.
 
 ## Live dashboard
 
-`npx ccyear serve` starts a dashboard that updates every few seconds while you work. It only reads what was appended to your logs since the last update, so it stays fast even with years of history.
+`npx @swulfen/ccyear serve` starts a dashboard that updates every few seconds while you work. It only reads what was appended to your logs since the last update, so it stays fast even with years of history.
 
 ![Live dashboard](assets/dashboard.png)
 
@@ -63,7 +63,7 @@ Opus 4.5 │ my-app │ 🔥 12.4M today │ $8.20 │ ~84K/min │ 41% of $20
 ```
 
 ```bash
-npm i -g ccyear
+npm i -g @swulfen/ccyear
 ccyear statusline --install
 ```
 
@@ -79,7 +79,7 @@ The dashboard, the widget and the status line turn yellow at 80% and red once yo
 
 ## Desktop widget
 
-`npx ccyear widget` opens a small window with today's tokens counting up live, your all-time total, today's API value and a one-hour sparkline. It uses the app mode of Chrome or Edge, so there's no browser UI around it. Without either, it opens in a normal tab.
+`npx @swulfen/ccyear widget` opens a small window with today's tokens counting up live, your all-time total, today's API value and a one-hour sparkline. It uses the app mode of Chrome or Edge, so there's no browser UI around it. Without either, it opens in a normal tab.
 
 <p><img src="assets/widget.png" width="380" alt="Desktop widget"></p>
 
@@ -109,23 +109,23 @@ The `leaderboard-setup` skill connects to Supabase through the [Supabase MCP ser
 4. Create your board:
 
    ```bash
-   npx ccyear board create --name "Night Shift" --me Paul \
+   npx @swulfen/ccyear board create --name "Night Shift" --me Paul \
      --url https://xyz.supabase.co --key sb_publishable_...
    ```
 
 5. Send the invite it prints to your friends. They run:
 
    ```bash
-   npx ccyear board join ccw1.... --me Lena
+   npx @swulfen/ccyear board join ccw1.... --me Lena
    ```
 
-Your totals sync every 10 minutes while `serve` is running. You can also run `npx ccyear sync` yourself or from a scheduled job.
+Your totals sync every 10 minutes while `serve` is running. You can also run `npx @swulfen/ccyear sync` yourself or from a scheduled job.
 
 ```bash
-npx ccyear leaderboard --period week   # today, week, month, year, all
-npx ccyear leaderboard --by days       # tokens, days, prompts, output
-npx ccyear board invite                # print the invite again
-npx ccyear board leave                 # leave and delete your data on that board
+npx @swulfen/ccyear leaderboard --period week   # today, week, month, year, all
+npx @swulfen/ccyear leaderboard --by days       # tokens, days, prompts, output
+npx @swulfen/ccyear board invite                # print the invite again
+npx @swulfen/ccyear board leave                 # leave and delete your data on that board
 ```
 
 In the dashboard you can rank by **tokens, active days or prompts**, so the friend with the most consistent week can win too. **Make winner card** turns the current ranking into a "Token king of the week" card to post in your group chat.
@@ -139,8 +139,8 @@ In the dashboard you can rank by **tokens, active days or prompts**, so the frie
 For invoices, client reports or your own spreadsheets:
 
 ```bash
-npx ccyear export --by project         # also: day, model, session
-npx ccyear export --by day --period month
+npx @swulfen/ccyear export --by project         # also: day, model, session
+npx @swulfen/ccyear export --by day --period month
 ```
 
 Each row has sessions, prompts, active hours, all four token types, estimated cost and first and last activity. The dashboard has the same export for whatever range you're looking at.
@@ -148,7 +148,7 @@ Each row has sessions, prompts, active hours, all four token types, estimated co
 ## Badge for your GitHub profile
 
 ```bash
-npx ccyear badge                       # --metric tokens, hours, streak, cost, achievements, style
+npx @swulfen/ccyear badge                       # --metric tokens, hours, streak, cost, achievements, style
 ```
 
 It saves an SVG and prints the Markdown line to paste into your profile README.

@@ -149,8 +149,8 @@
         <strong>Compete with your friends.</strong> Leaderboards run on your own free Supabase project, so you and your friends own the data. Only daily totals are shared: tokens, prompts, cost and models. Never prompts, code or project names.
         <ol>
           <li>Create a Supabase project and run <code class="cmd">supabase/schema.sql</code> in its SQL editor. Or ask Claude Code to do it for you with the <em>leaderboard-setup</em> skill.</li>
-          <li>Create a board: <code class="cmd">npx ccyear board create --name "Night Shift" --me YourName --url https://xyz.supabase.co --key sb_publishable_…</code></li>
-          <li>Send the invite it prints to your friends. They run <code class="cmd">npx ccyear board join &lt;invite&gt; --me TheirName</code></li>
+          <li>Create a board: <code class="cmd">npx @swulfen/ccyear board create --name "Night Shift" --me YourName --url https://xyz.supabase.co --key sb_publishable_…</code></li>
+          <li>Send the invite it prints to your friends. They run <code class="cmd">npx @swulfen/ccyear board join &lt;invite&gt; --me TheirName</code></li>
         </ol></div>`;
       return;
     }
@@ -168,9 +168,9 @@
             <span class="track"><span style="width:${(x[rankBy] / max) * 100}%"></span></span>
             <span class="tok">${fmtBy(x)}${rankBy === 'activeDays' ? '<small> days</small>' : ''}</span></li>`).join('')}</ol>`
         : '<p class="note">Nobody has synced yet.</p>') +
-        `<div class="invite"><span>Invite a friend:</span><code class="cmd">npx ccyear board join ${esc(b.invite)} --me Name</code><button class="btn ghost small" id="copyInvite" type="button">Copy</button><button class="btn ghost small" id="syncNow" type="button">Sync now</button>${rows.length ? '<button class="btn small" id="winnerCard" type="button">Make winner card</button>' : ''}</div>`;
+        `<div class="invite"><span>Invite a friend:</span><code class="cmd">npx @swulfen/ccyear board join ${esc(b.invite)} --me Name</code><button class="btn ghost small" id="copyInvite" type="button">Copy</button><button class="btn ghost small" id="syncNow" type="button">Sync now</button>${rows.length ? '<button class="btn small" id="winnerCard" type="button">Make winner card</button>' : ''}</div>`;
       if ($('winnerCard')) $('winnerCard').onclick = () => drawWinner(b.name);
-      $('copyInvite').onclick = (e) => navigator.clipboard.writeText(`npx ccyear board join ${b.invite} --me Name`).then(() => (e.target.textContent = 'Copied'));
+      $('copyInvite').onclick = (e) => navigator.clipboard.writeText(`npx @swulfen/ccyear board join ${b.invite} --me Name`).then(() => (e.target.textContent = 'Copied'));
       $('syncNow').onclick = async (e) => {
         e.target.textContent = 'Syncing…';
         try {
@@ -280,7 +280,7 @@
         { value: rankBy === 'activeDays' ? nf(total) : compact(total), label: `${BY_LABEL[rankBy]} on the board` },
       ],
       stamp: '#1',
-      footer: 'npx ccyear',
+      footer: 'npx @swulfen/ccyear',
     });
     $('designer').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
   }
@@ -298,7 +298,7 @@
       hero: { value: hv, label: hl },
       stats: design.stats.map((k) => ({ value: STAT_DEFS[k].get(S, design.anon), label: STAT_DEFS[k].label })),
       stamp: range === 'year' ? String(new Date().getFullYear()).slice(2) : range === 'all' ? '∞' : '',
-      footer: 'npx ccyear',
+      footer: 'npx @swulfen/ccyear',
     });
   }
 

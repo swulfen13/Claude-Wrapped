@@ -1,6 +1,6 @@
 {
   "name": "ccyear",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Your Claude Code usage, wrapped: year-in-review report, live localhost dashboard, desktop token widget and a friends leaderboard on your own Supabase.",
   "author": { "name": "swulfen13" },
   "homepage": "https://github.com/swulfen13/Claude-Wrapped",

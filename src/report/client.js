@@ -350,7 +350,7 @@
       <p class="sub">${esc(T.breakdownSub(dateTs(D.range.first), dateTs(D.range.last)))}</p>
       ${panels.join('')}
     </section>
-    <footer>${esc(T.footer)}<br><code>npx ccyear</code></footer>`;
+    <footer>${esc(T.footer)}<br><code>npx @swulfen/ccyear</code></footer>`;
 
   // ---------- charts ----------
   function heatColor(level) { return CCWCharts.HEAT[level]; }
@@ -385,7 +385,7 @@
     `${compact(D.totals.tokens)} ${T.cardTokens}`,
     `${nf(D.activeHours)} ${T.cardHours} · ${nf(D.activeDays)} ${T.cardDays} · ${nf(D.longestStreak)} ${T.cardStreak}`,
     `${T.cardModel}: ${D.favoriteModel || '–'} · ${T.cardPeak}: ${hourLabel(D.topHour)}`,
-    'npx ccyear',
+    'npx @swulfen/ccyear',
   ].join('\n');
 
   function cardOptions() {
@@ -405,7 +405,7 @@
         { value: topRepo, label: T.cardRepo },
       ],
       stamp: D.year == null ? '∞' : String(D.year).slice(2),
-      footer: 'npx ccyear',
+      footer: 'npx @swulfen/ccyear',
     };
   }
   const drawCard = () => CCWCard.draw(document.getElementById('card'), cardOptions());

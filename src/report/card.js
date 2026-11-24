@@ -94,7 +94,7 @@
 
     ctx.fillStyle = th.band; ctx.fillRect(0, H - band, W, band);
     ctx.fillStyle = th.bandText; ctx.font = `700 40px ${body}`; ctx.textBaseline = 'middle';
-    ctx.fillText(opts.footer || 'npx ccyear', M, H - band / 2);
+    ctx.fillText(opts.footer || 'npx @swulfen/ccyear', M, H - band / 2);
   }
 
   window.CCWCard = { draw, THEMES, FORMATS };

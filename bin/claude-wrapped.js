@@ -18,16 +18,16 @@ ccyear ${pkg.version}
 Your year with Claude Code, wrapped. Runs 100% locally.
 
 Usage
-  npx ccyear [options]                    Build your Wrapped report
-  npx ccyear serve [--port 4747]          Live dashboard on localhost
-  npx ccyear widget                       Small always-there live token counter
-  npx ccyear board <command>              Friends leaderboard (see below)
-  npx ccyear sync                         Upload your daily totals to your boards
-  npx ccyear leaderboard [--period week] [--by tokens|days|prompts]
-  npx ccyear statusline --install         Show today's tokens in Claude Code's status bar
-  npx ccyear budget --usd 20              Daily budget warning (or --tokens 50M, --off)
-  npx ccyear export --by project          CSV export (project, day, model or session)
-  npx ccyear badge --metric tokens        SVG badge for your GitHub profile README
+  npx @swulfen/ccyear [options]           Build your Wrapped report
+  npx @swulfen/ccyear serve [--port 4747]  Live dashboard on localhost
+  npx @swulfen/ccyear widget              Small always-there live token counter
+  npx @swulfen/ccyear board <command>     Friends leaderboard (see below)
+  npx @swulfen/ccyear sync                Upload your daily totals to your boards
+  npx @swulfen/ccyear leaderboard [--period week] [--by tokens|days|prompts]
+  npx @swulfen/ccyear statusline --install  Show today's tokens in Claude Code's status bar
+  npx @swulfen/ccyear budget --usd 20     Daily budget warning (or --tokens 50M, --off)
+  npx @swulfen/ccyear export --by project  CSV export (project, day, model or session)
+  npx @swulfen/ccyear badge --metric tokens  SVG badge for your GitHub profile README
 
 Report options
   --year <yyyy>     Year to wrap (default: current year)
@@ -190,7 +190,7 @@ async function cmdReport(o) {
   const shown = out.startsWith(os.homedir()) ? '~' + out.slice(os.homedir().length) : out;
   console.log(`  ${c.g('✔')} Report saved to ${c.b(shown)}`);
   console.log(c.dim('    Everything was computed on your machine. Nothing was uploaded.'));
-  console.log(c.dim('    Want it live? Run: npx ccyear serve\n'));
+  console.log(c.dim('    Want it live? Run: npx @swulfen/ccyear serve\n'));
   if (o.open) openUrl(out);
 }
 
@@ -275,7 +275,7 @@ async function cmdBoard(o) {
     addBoard(b);
     console.log(`\n  ${c.g('✔')} Board ${c.b(b.boardName)} created. You're on it as ${c.b(b.me)}.`);
     console.log('\n  Send this to your friends:\n');
-    console.log(`    ${c.y(`npx ccyear board join ${invite} --me <their name>`)}\n`);
+    console.log(`    ${c.y(`npx @swulfen/ccyear board join ${invite} --me <their name>`)}\n`);
     await syncAfterJoin(o, b);
     console.log(c.dim('  Your totals sync every 10 minutes while `ccyear serve` runs, or run `ccyear sync`.\n'));
     return;
@@ -295,7 +295,7 @@ async function cmdBoard(o) {
     console.log('');
     cfg.boards.forEach((b, i) => {
       console.log(`  ${c.dim('#' + i)} ${c.b(b.boardName)} as ${b.me}${b.owner ? c.dim(' (owner)') : ''}`);
-      console.log(`     ${c.y(`npx ccyear board join ${board.makeInvite(b.url, b.key, b.code)} --me <name>`)}`);
+      console.log(`     ${c.y(`npx @swulfen/ccyear board join ${board.makeInvite(b.url, b.key, b.code)} --me <name>`)}`);
     });
     console.log('');
     return;
@@ -363,7 +363,7 @@ async function cmdStatusline(o) {
     return;
   }
   console.log(`\n  ${c.g('✔')} Status line added to ${c.b(r.file)}`);
-  if (viaNpx) console.log(c.y('  It runs `ccyear statusline`, so install ccyear globally first: npm i -g ccyear'));
+  if (viaNpx) console.log(c.y('  It runs `ccyear statusline`, so install ccyear globally first: npm i -g @swulfen/ccyear'));
   console.log(c.dim('  Restart Claude Code to see it. Run `ccyear serve` in the background to make it instant.\n'));
 }
 

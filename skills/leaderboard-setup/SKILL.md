@@ -22,7 +22,7 @@ Ask in one message (skip anything they already told you):
 No Supabase access is needed. Run:
 
 ```bash
-npx ccyear board join <invite> --me "<name>"
+npx @swulfen/ccyear board join <invite> --me "<name>"
 ```
 
 If it says the name is taken, ask for another name. Then go to step 4.
@@ -61,22 +61,22 @@ Then check it worked:
 Get the project URL and a publishable key (`sb_publishable_...`, or the legacy `anon` key if that's all there is). Never use or print a `service_role` or secret key.
 
 ```bash
-npx ccyear board create --name "<board name>" --me "<name>" --url "<project url>" --key "<publishable key>"
+npx @swulfen/ccyear board create --name "<board name>" --me "<name>" --url "<project url>" --key "<publishable key>"
 ```
 
 ## 3. Share the invite
 
-The command prints a line like `npx ccyear board join ccw1.… --me <their name>`. Give it to the user exactly as printed and tell them to send it to their friends. They can print it again anytime with `npx ccyear board invite`.
+The command prints a line like `npx @swulfen/ccyear board join ccw1.… --me <their name>`. Give it to the user exactly as printed and tell them to send it to their friends. They can print it again anytime with `npx @swulfen/ccyear board invite`.
 
 The invite contains the project URL, the publishable key and the board code. These are not secrets in Supabase's model, but anyone with the invite can join the board, so it should only go to people they want on it.
 
 ## 4. Keep it updated
 
-- `npx ccyear serve` opens the live dashboard on localhost and syncs every 10 minutes while it runs.
-- `npx ccyear sync` uploads once.
-- `npx ccyear leaderboard --period week` shows the ranking in the terminal.
+- `npx @swulfen/ccyear serve` opens the live dashboard on localhost and syncs every 10 minutes while it runs.
+- `npx @swulfen/ccyear sync` uploads once.
+- `npx @swulfen/ccyear leaderboard --period week` shows the ranking in the terminal.
 
-Offer to set up a scheduled `npx ccyear sync` (cron on macOS/Linux, Task Scheduler on Windows) if they want rankings to update without the dashboard running.
+Offer to set up a scheduled `npx @swulfen/ccyear sync` (cron on macOS/Linux, Task Scheduler on Windows) if they want rankings to update without the dashboard running.
 
 ## Manual path (no MCP)
 
