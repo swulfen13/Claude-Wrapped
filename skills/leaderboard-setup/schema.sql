@@ -1,4 +1,4 @@
--- ccwrapped friends leaderboard
+-- ccyear friends leaderboard
 -- Run this once in your own Supabase project (SQL editor, `supabase db push`, or the Supabase MCP).
 --
 -- Design

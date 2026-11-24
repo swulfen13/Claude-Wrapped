@@ -32,7 +32,7 @@ function makeInvite(url, key, code) {
 
 function readInvite(invite) {
   const s = String(invite || '').trim();
-  if (!s.startsWith('ccw1.')) throw new Error('That doesn\'t look like a ccwrapped invite. It should start with "ccw1."');
+  if (!s.startsWith('ccw1.')) throw new Error('That doesn\'t look like a ccyear invite. It should start with "ccw1."');
   try {
     const o = JSON.parse(Buffer.from(s.slice(5), 'base64url').toString('utf8'));
     if (!o.u || !o.k || !o.c) throw new Error();

@@ -68,13 +68,13 @@ test('statusline install keeps other settings and never overwrites silently', ()
   process.env.CLAUDE_CONFIG_DIR = dir;
   try {
     fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({ model: 'opus', statusLine: { type: 'command', command: 'mine' } }));
-    const r1 = installStatusline({ command: 'ccwrapped statusline' });
+    const r1 = installStatusline({ command: 'ccyear statusline' });
     assert.strictEqual(r1.changed, false);
-    const r2 = installStatusline({ command: 'ccwrapped statusline', force: true });
+    const r2 = installStatusline({ command: 'ccyear statusline', force: true });
     assert.strictEqual(r2.changed, true);
     const s = JSON.parse(fs.readFileSync(path.join(dir, 'settings.json'), 'utf8'));
     assert.strictEqual(s.model, 'opus');
-    assert.strictEqual(s.statusLine.command, 'ccwrapped statusline');
+    assert.strictEqual(s.statusLine.command, 'ccyear statusline');
     assert.ok(fs.existsSync(path.join(dir, 'settings.json.ccwrapped-backup')));
     fs.writeFileSync(path.join(dir, 'settings.json'), '{ broken');
     assert.throws(() => installStatusline({ command: 'x' }), /valid JSON/);

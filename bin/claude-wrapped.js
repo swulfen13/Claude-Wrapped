@@ -14,20 +14,20 @@ const board = require('../src/board');
 const pkg = require('../package.json');
 
 const HELP = `
-ccwrapped ${pkg.version}
+ccyear ${pkg.version}
 Your year with Claude Code, wrapped. Runs 100% locally.
 
 Usage
-  npx ccwrapped [options]                 Build your Wrapped report
-  npx ccwrapped serve [--port 4747]       Live dashboard on localhost
-  npx ccwrapped widget                    Small always-there live token counter
-  npx ccwrapped board <command>           Friends leaderboard (see below)
-  npx ccwrapped sync                      Upload your daily totals to your boards
-  npx ccwrapped leaderboard [--period week] [--by tokens|days|prompts]
-  npx ccwrapped statusline --install      Show today's tokens in Claude Code's status bar
-  npx ccwrapped budget --usd 20           Daily budget warning (or --tokens 50M, --off)
-  npx ccwrapped export --by project       CSV export (project, day, model or session)
-  npx ccwrapped badge --metric tokens     SVG badge for your GitHub profile README
+  npx ccyear [options]                    Build your Wrapped report
+  npx ccyear serve [--port 4747]          Live dashboard on localhost
+  npx ccyear widget                       Small always-there live token counter
+  npx ccyear board <command>              Friends leaderboard (see below)
+  npx ccyear sync                         Upload your daily totals to your boards
+  npx ccyear leaderboard [--period week] [--by tokens|days|prompts]
+  npx ccyear statusline --install         Show today's tokens in Claude Code's status bar
+  npx ccyear budget --usd 20              Daily budget warning (or --tokens 50M, --off)
+  npx ccyear export --by project          CSV export (project, day, model or session)
+  npx ccyear badge --metric tokens        SVG badge for your GitHub profile README
 
 Report options
   --year <yyyy>     Year to wrap (default: current year)
@@ -190,7 +190,7 @@ async function cmdReport(o) {
   const shown = out.startsWith(os.homedir()) ? '~' + out.slice(os.homedir().length) : out;
   console.log(`  ${c.g('✔')} Report saved to ${c.b(shown)}`);
   console.log(c.dim('    Everything was computed on your machine. Nothing was uploaded.'));
-  console.log(c.dim('    Want it live? Run: npx ccwrapped serve\n'));
+  console.log(c.dim('    Want it live? Run: npx ccyear serve\n'));
   if (o.open) openUrl(out);
 }
 
@@ -221,7 +221,7 @@ async function cmdServe(o, { widget = false } = {}) {
   const server = createServer({ dir: o.dir, demo: !!o.demo, lang: o.lang, name: o.name });
   server.on('error', async (err) => {
     if (err.code === 'EADDRINUSE' && (await isOurServer(port))) {
-      console.log(`  ccwrapped is already running at ${c.b(base)}. Opening it.`);
+      console.log(`  ccyear is already running at ${c.b(base)}. Opening it.`);
       go();
       return;
     }
@@ -229,7 +229,7 @@ async function cmdServe(o, { widget = false } = {}) {
   });
   server.listen(port, '127.0.0.1', () => {
     console.log('');
-    console.log(c.b(c.bl('  ccwrapped is live')));
+    console.log(c.b(c.bl('  ccyear is live')));
     console.log(`  Dashboard  ${c.b(base)}`);
     console.log(`  Widget     ${c.b(base + '/widget')}`);
     console.log(`  Wrapped    ${c.b(base + '/wrapped')}`);
@@ -240,14 +240,14 @@ async function cmdServe(o, { widget = false } = {}) {
 
 function requireBoards() {
   const cfg = board.loadConfig();
-  if (!cfg.boards || !cfg.boards.length) fail('You are not on a board yet. Create one with `ccwrapped board create` or join with `ccwrapped board join <invite>`.');
+  if (!cfg.boards || !cfg.boards.length) fail('You are not on a board yet. Create one with `ccyear board create` or join with `ccyear board join <invite>`.');
   return cfg;
 }
 
 function pickBoard(cfg, o) {
   const i = Number(o.board || 0);
   const b = cfg.boards[i];
-  if (!b) fail(`No board #${i}. Run \`ccwrapped board list\`.`);
+  if (!b) fail(`No board #${i}. Run \`ccyear board list\`.`);
   return { b, i };
 }
 
@@ -275,19 +275,19 @@ async function cmdBoard(o) {
     addBoard(b);
     console.log(`\n  ${c.g('✔')} Board ${c.b(b.boardName)} created. You're on it as ${c.b(b.me)}.`);
     console.log('\n  Send this to your friends:\n');
-    console.log(`    ${c.y(`npx ccwrapped board join ${invite} --me <their name>`)}\n`);
+    console.log(`    ${c.y(`npx ccyear board join ${invite} --me <their name>`)}\n`);
     await syncAfterJoin(o, b);
-    console.log(c.dim('  Your totals sync every 10 minutes while `ccwrapped serve` runs, or run `ccwrapped sync`.\n'));
+    console.log(c.dim('  Your totals sync every 10 minutes while `ccyear serve` runs, or run `ccyear sync`.\n'));
     return;
   }
   if (sub === 'join') {
     const invite = o._[2];
-    if (!invite) fail('Paste the invite you got: ccwrapped board join ccw1.xxxx --me <name>');
+    if (!invite) fail('Paste the invite you got: ccyear board join ccw1.xxxx --me <name>');
     const { board: b } = await board.joinBoard(invite, o.me).catch((e) => fail(e.message));
     addBoard(b);
     console.log(`\n  ${c.g('✔')} You joined ${c.b(b.boardName)} as ${c.b(b.me)}.`);
     await syncAfterJoin(o, b);
-    console.log(c.dim('  See the ranking with `ccwrapped leaderboard` or in `ccwrapped serve`.\n'));
+    console.log(c.dim('  See the ranking with `ccyear leaderboard` or in `ccyear serve`.\n'));
     return;
   }
   if (sub === 'invite' || sub === 'list') {
@@ -295,7 +295,7 @@ async function cmdBoard(o) {
     console.log('');
     cfg.boards.forEach((b, i) => {
       console.log(`  ${c.dim('#' + i)} ${c.b(b.boardName)} as ${b.me}${b.owner ? c.dim(' (owner)') : ''}`);
-      console.log(`     ${c.y(`npx ccwrapped board join ${board.makeInvite(b.url, b.key, b.code)} --me <name>`)}`);
+      console.log(`     ${c.y(`npx ccyear board join ${board.makeInvite(b.url, b.key, b.code)} --me <name>`)}`);
     });
     console.log('');
     return;
@@ -348,7 +348,7 @@ function stableCommand() {
   // npx copies live in a cache that can be cleaned up, so prefer a global install.
   const viaNpx = /[\\/]_npx[\\/]/.test(__filename);
   if (!viaNpx) return { command: `"${process.execPath}" "${path.resolve(__filename)}" statusline`, viaNpx };
-  return { command: 'ccwrapped statusline', viaNpx };
+  return { command: 'ccyear statusline', viaNpx };
 }
 
 async function cmdStatusline(o) {
@@ -363,8 +363,8 @@ async function cmdStatusline(o) {
     return;
   }
   console.log(`\n  ${c.g('✔')} Status line added to ${c.b(r.file)}`);
-  if (viaNpx) console.log(c.y('  It runs `ccwrapped statusline`, so install ccwrapped globally first: npm i -g ccwrapped'));
-  console.log(c.dim('  Restart Claude Code to see it. Run `ccwrapped serve` in the background to make it instant.\n'));
+  if (viaNpx) console.log(c.y('  It runs `ccyear statusline`, so install ccyear globally first: npm i -g ccyear'));
+  console.log(c.dim('  Restart Claude Code to see it. Run `ccyear serve` in the background to make it instant.\n'));
 }
 
 function cmdBudget(o) {
@@ -382,7 +382,7 @@ function cmdBudget(o) {
     board.saveConfig(cfg);
     return console.log(`  ${c.g('✔')} Daily budget set to ${c.b(o.usd ? '$' + v : compact(v) + ' tokens')}. The widget, dashboard and status line warn at 80% and turn red at 100%.`);
   }
-  if (!cfg.budget) return console.log('  No daily budget set. Example: ccwrapped budget --usd 20  or  --tokens 50M');
+  if (!cfg.budget) return console.log('  No daily budget set. Example: ccyear budget --usd 20  or  --tokens 50M');
   console.log(`  Daily budget: ${c.b(cfg.budget.usd ? '$' + cfg.budget.usd : compact(cfg.budget.tokens) + ' tokens')}`);
 }
 
@@ -399,7 +399,7 @@ async function cmdExport(o) {
       return fail(e.message);
     }
   })();
-  const out = path.resolve(o.out || `ccwrapped-${by}-${o.period || (year == null ? 'all-time' : year)}.csv`);
+  const out = path.resolve(o.out || `ccyear-${by}-${o.period || (year == null ? 'all-time' : year)}.csv`);
   fs.writeFileSync(out, csv);
   console.log(`  ${c.g('✔')} ${csv.trim().split('\n').length - 1} rows saved to ${c.b(out)}`);
 }
@@ -415,7 +415,7 @@ async function cmdBadge(o) {
   } catch (e) {
     fail(e.message);
   }
-  const out = path.resolve(o.out || `ccwrapped-${metric}.svg`);
+  const out = path.resolve(o.out || `ccyear-${metric}.svg`);
   fs.writeFileSync(out, svg);
   console.log(`\n  ${c.g('✔')} Badge saved to ${c.b(out)}`);
   console.log('  Commit it to your profile repo (github.com/<you>/<you>) and add this to its README:\n');

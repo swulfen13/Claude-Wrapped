@@ -1,9 +1,9 @@
 {
-  "name": "ccwrapped",
+  "name": "ccyear",
   "owner": { "name": "swulfen13" },
   "plugins": [
     {
-      "name": "ccwrapped",
+      "name": "ccyear",
       "source": "./",
       "description": "Your Claude Code usage, wrapped: report, live dashboard, desktop widget and a friends leaderboard."
     }

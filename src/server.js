@@ -129,7 +129,7 @@ function createServer(opts = {}) {
         const range = url.searchParams.get('range') || 'year';
         const by = url.searchParams.get('by') || 'project';
         const csv = exportCsv(await events(), { by, since: sinceFor(range), year: range === 'year' ? new Date().getFullYear() : null });
-        res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="ccwrapped-${by}-${range}.csv"`, 'Cache-Control': 'no-store' });
+        res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="ccyear-${by}-${range}.csv"`, 'Cache-Control': 'no-store' });
         return res.end(csv);
       }
       if (req.method === 'GET' && url.pathname === '/badge.svg') {

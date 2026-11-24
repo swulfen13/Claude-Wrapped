@@ -1,7 +1,7 @@
 'use strict';
-// `ccwrapped statusline`: one line for Claude Code's status bar.
+// `ccyear statusline`: one line for Claude Code's status bar.
 // Claude Code runs the command on every update and pipes session info as JSON to stdin.
-// Speed matters, so it asks a running `ccwrapped serve` first and only falls back to
+// Speed matters, so it asks a running `ccyear serve` first and only falls back to
 // reading today's log files itself (cached for a few seconds).
 const fs = require('fs');
 const os = require('os');
@@ -96,7 +96,7 @@ function render(live, session) {
   const dir = session && session.workspace && (session.workspace.current_dir || session.workspace.project_dir);
   if (dir) parts.push(`${C.dim}${path.basename(dir)}${C.x}`);
   if (!live) {
-    parts.push(`${C.dim}ccwrapped: no data yet${C.x}`);
+    parts.push(`${C.dim}ccyear: no data yet${C.x}`);
     return parts.join(' │ ');
   }
   const b = live.budget;

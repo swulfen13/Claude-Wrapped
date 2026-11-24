@@ -1,11 +1,11 @@
 ---
 name: leaderboard-setup
-description: Set up or join a ccwrapped friends leaderboard for Claude Code token usage. Creates the tables in the user's own Supabase project through the Supabase MCP server, creates a board and prints the invite. Use when the user wants to compete with friends on tokens burned, create a leaderboard, or join one with an invite.
+description: Set up or join a ccyear friends leaderboard for Claude Code token usage. Creates the tables in the user's own Supabase project through the Supabase MCP server, creates a board and prints the invite. Use when the user wants to compete with friends on tokens burned, create a leaderboard, or join one with an invite.
 ---
 
-# ccwrapped leaderboard setup
+# ccyear leaderboard setup
 
-You are helping the user run a private leaderboard where they and their friends compare how many Claude Code tokens they use. It runs on **the user's own Supabase project**, so they own the data. Nothing is hosted by the ccwrapped authors.
+You are helping the user run a private leaderboard where they and their friends compare how many Claude Code tokens they use. It runs on **the user's own Supabase project**, so they own the data. Nothing is hosted by the ccyear authors.
 
 Only daily totals are ever uploaded: tokens, output tokens, prompts, estimated cost and tokens per model. Never prompts, code, file names or project names. Tell the user this once, up front, in one sentence.
 
@@ -22,7 +22,7 @@ Ask in one message (skip anything they already told you):
 No Supabase access is needed. Run:
 
 ```bash
-npx ccwrapped board join <invite> --me "<name>"
+npx ccyear board join <invite> --me "<name>"
 ```
 
 If it says the name is taken, ask for another name. Then go to step 4.
@@ -61,22 +61,22 @@ Then check it worked:
 Get the project URL and a publishable key (`sb_publishable_...`, or the legacy `anon` key if that's all there is). Never use or print a `service_role` or secret key.
 
 ```bash
-npx ccwrapped board create --name "<board name>" --me "<name>" --url "<project url>" --key "<publishable key>"
+npx ccyear board create --name "<board name>" --me "<name>" --url "<project url>" --key "<publishable key>"
 ```
 
 ## 3. Share the invite
 
-The command prints a line like `npx ccwrapped board join ccw1.… --me <their name>`. Give it to the user exactly as printed and tell them to send it to their friends. They can print it again anytime with `npx ccwrapped board invite`.
+The command prints a line like `npx ccyear board join ccw1.… --me <their name>`. Give it to the user exactly as printed and tell them to send it to their friends. They can print it again anytime with `npx ccyear board invite`.
 
 The invite contains the project URL, the publishable key and the board code. These are not secrets in Supabase's model, but anyone with the invite can join the board, so it should only go to people they want on it.
 
 ## 4. Keep it updated
 
-- `npx ccwrapped serve` opens the live dashboard on localhost and syncs every 10 minutes while it runs.
-- `npx ccwrapped sync` uploads once.
-- `npx ccwrapped leaderboard --period week` shows the ranking in the terminal.
+- `npx ccyear serve` opens the live dashboard on localhost and syncs every 10 minutes while it runs.
+- `npx ccyear sync` uploads once.
+- `npx ccyear leaderboard --period week` shows the ranking in the terminal.
 
-Offer to set up a scheduled `npx ccwrapped sync` (cron on macOS/Linux, Task Scheduler on Windows) if they want rankings to update without the dashboard running.
+Offer to set up a scheduled `npx ccyear sync` (cron on macOS/Linux, Task Scheduler on Windows) if they want rankings to update without the dashboard running.
 
 ## Manual path (no MCP)
 

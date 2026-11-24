@@ -72,7 +72,7 @@
       langsNote: 'By file extension of edits and writes.',
       colModel: 'Model', colTokens: 'Tokens', colShare: 'Share', colCost: 'Est. cost', colProject: 'Project',
       colSessions: 'Sessions', colPrompts: 'Prompts', colTool: 'Tool', colCalls: 'Calls', colLang: 'Language', colEdits: 'Edits',
-      footer: 'Made with ccwrapped. Your data never left your computer. Not affiliated with Anthropic.',
+      footer: 'Made with ccyear. Your data never left your computer. Not affiliated with Anthropic.',
       emptyTitle: 'No Claude Code activity found',
       emptySub: 'Claude Wrapped reads the session logs Claude Code stores in ~/.claude/projects. Use Claude Code for a bit, pick another year with --year, or try the demo with --demo.',
       weekdaysShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -161,7 +161,7 @@
       langsNote: 'Nach Dateiendung der Edits und Writes.',
       colModel: 'Modell', colTokens: 'Tokens', colShare: 'Anteil', colCost: 'Kosten (geschätzt)', colProject: 'Projekt',
       colSessions: 'Sessions', colPrompts: 'Prompts', colTool: 'Tool', colCalls: 'Aufrufe', colLang: 'Sprache', colEdits: 'Edits',
-      footer: 'Erstellt mit ccwrapped. Deine Daten haben deinen Rechner nie verlassen. Kein offizielles Anthropic-Produkt.',
+      footer: 'Erstellt mit ccyear. Deine Daten haben deinen Rechner nie verlassen. Kein offizielles Anthropic-Produkt.',
       emptyTitle: 'Keine Claude-Code-Aktivität gefunden',
       emptySub: 'Claude Wrapped liest die Session-Logs, die Claude Code in ~/.claude/projects speichert. Nutz Claude Code ein bisschen, wähl mit --year ein anderes Jahr oder probier die Demo mit --demo.',
       weekdaysShort: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
@@ -350,7 +350,7 @@
       <p class="sub">${esc(T.breakdownSub(dateTs(D.range.first), dateTs(D.range.last)))}</p>
       ${panels.join('')}
     </section>
-    <footer>${esc(T.footer)}<br><code>npx ccwrapped</code></footer>`;
+    <footer>${esc(T.footer)}<br><code>npx ccyear</code></footer>`;
 
   // ---------- charts ----------
   function heatColor(level) { return CCWCharts.HEAT[level]; }
@@ -385,7 +385,7 @@
     `${compact(D.totals.tokens)} ${T.cardTokens}`,
     `${nf(D.activeHours)} ${T.cardHours} · ${nf(D.activeDays)} ${T.cardDays} · ${nf(D.longestStreak)} ${T.cardStreak}`,
     `${T.cardModel}: ${D.favoriteModel || '–'} · ${T.cardPeak}: ${hourLabel(D.topHour)}`,
-    'npx ccwrapped',
+    'npx ccyear',
   ].join('\n');
 
   function cardOptions() {
@@ -405,7 +405,7 @@
         { value: topRepo, label: T.cardRepo },
       ],
       stamp: D.year == null ? '∞' : String(D.year).slice(2),
-      footer: 'npx ccwrapped',
+      footer: 'npx ccyear',
     };
   }
   const drawCard = () => CCWCard.draw(document.getElementById('card'), cardOptions());
